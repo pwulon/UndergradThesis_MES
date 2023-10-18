@@ -37,6 +37,52 @@ double rho(double x, double y){
     return exp(-.5*(pow(x,2)+pow(y,2)));
 }
 
+template<size_t n>
+std::array<double, n> solveLU(std::array<std::array<double, n>, n> &A, std::array<double, n> &y){
+
+    std::array<std::array<double, n>, n> LU{};
+//    std::array<std::array<double, n>, n> U{};
+
+    for(int i = 0; i < n ; i++ ){
+       for(int j = i; j<n; j++) {
+//           if(i == j) Lu[i][j] = 1.;
+           double sum = 0.;
+           for (int k = 0; k < i; k++) {
+               sum += LU[i][k] * LU[k][j];
+           }
+           LU[i][j] = A[i][j] - sum;
+       }
+        for(int j = i + 1; j<n; j++){
+           double sum = 0.;
+           for(int k = 0;k<i;k++){
+               sum += LU[j][k]*LU[k][i];
+           }
+           LU[j][i] = (A[j][i] - sum)/LU[i][i];
+
+       }
+    }
+
+    std::array<double, n> z{};
+    for(int i = 0; i < n; i++){
+        double sum = 0;
+        for( int j = 0; j <i; j++){
+            sum += z[j]*LU[i][j];
+        }
+        z[i] = (y[i] - sum);
+    }
+
+    std::array<double, n> c{};
+    for(int i = n - 1; i >= 0; i--){
+        double sum = 0;
+        for( int j = n-1; j >i; j--){
+            sum += c[j]*LU[i][j];
+        }
+        c[i] = (z[i] - sum)/LU[i][i];
+    }
+
+    return c;
+}
+
 class TriEle {
 private:
     // pochodne
@@ -165,37 +211,36 @@ public:
         initE();
         initF();
     }
-
-
 };
 
 int main() {
     const double L = 10;
-    const size_t N = 100; //vertices number
-    const size_t row = 10; //vertices number
+    const int row = 11; //vertices number
+    const size_t N = row*row; //vertices number
 
-    double horLen = L / (L - 1);
+
+    double horLen = L / (row - 1);
 
     std::array<std::pair<double, double>, N> verticies{};
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < row; j++)
-            verticies[i * 10 + j] = {-5.0 + horLen * i, -5.0 + horLen * j};
+            verticies[i * row + j] = {-5.0 + horLen * i, -5.0 + horLen * j};
     }
 
 
     const size_t nEle = (row - 1) * (row - 1) * 2;
     std::vector<TriEle> Elements;
 
-    for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 9; j++) {
-            int e = 2 * (i * 9 + j);
-            std::array<int, 3> iVer = {i * 10 + j, (i + 1) * 10 + j, i * 10 + j + 1};
+    for (int i = 0; i < (row - 1); i++) {
+        for (int j = 0; j < (row - 1); j++) {
+            int e = 2 * (i * (row - 1) + j);
+            std::array<int, 3> iVer = {i * row + j, (i + 1) * row + j, i * row + j + 1};
             v3 ver = {verticies[iVer[0]],
                        verticies[iVer[1]],
                        verticies[iVer[2]]};
 
             Elements.emplace_back(e, ver, iVer);
-            iVer = {(i + 1) * 10 + j, (i + 1) * 10 + j + 1, i * 10 + j + 1};
+            iVer = {(i + 1) * row + j, (i + 1) * row + j + 1, i * row + j + 1};
             ver = {verticies[iVer[0]],
                     verticies[iVer[1]],
                     verticies[iVer[2]]};
@@ -204,8 +249,7 @@ int main() {
         }
     }
 
-    std::array<std::array<double, 100>,100> S{};
-
+    std::array<std::array<double, N>,N> S{};
     for(int m = 0; m<nEle; m++){
         std::array<std::array<double,3>,3>&E = Elements[m].E;
         std::array<int,3>&glob = Elements[m].localLabel;
@@ -217,15 +261,9 @@ int main() {
             }
         }
     }
-    FILE* file;
-    file = fopen("S.txt","w");
-    for(int i = 0; i<100; i++){
-        for(int j = 0; j<100; j++) fprintf(file,"%.2f\t",S[i][j]);
-        fprintf(file,"\n");
-    }
-    fclose(file);
+    Elements.clear();
 
-    std::array<double,100> F{};
+    std::array<double,N> F{};
     for(int m = 0; m<nEle; m++){
         std::array<double, 3>&Fm = Elements[m].F;
         std::array<int,3>&glob = Elements[m].localLabel;
@@ -234,8 +272,41 @@ int main() {
                 F[i] = F[i] + Fm[k];
         }
     }
+
+    //i * 10 + j = k
+    for(int i = 0; i<row; i++){
+        std::array<int, 4> k = {i * row + 0,i * row + row-1,0 * row + i,(row - 1)* row + i};
+        for(int j = 0;j<N;j++) {
+            for(int k_:k)
+            {
+                if(k_==j){
+                    S[k_][j] = 1.;
+                    F[k_] = 0.;
+                }else{
+                    S[k_][j] = 0;
+                }
+            }
+        }
+    }
+
+    FILE* file;
+    file = fopen("S.txt","w");
+    for(int i = 0; i<N; i++){
+        for(int j = 0; j<N; j++) {
+            fprintf(file,"%.2f\t",S[i][j]);
+        }
+        fprintf(file,"\n");
+    }
+    fclose(file);
+
     file = fopen("F.txt","w");
-    for(int j = 0; j<100; j++) fprintf(file,"%g\n",F[j]);
+    for(int j = 0; j<N; j++) fprintf(file,"%g\n",F[j]);
+    fclose(file);
+
+
+    auto c = solveLU(S,F);
+    file = fopen("result.txt","w");
+    for(int j = 0; j<N; j++) fprintf(file,"%g %g %g\n",verticies[j].first, verticies[j].second, c[j]);
     fclose(file);
 
     return 0;
