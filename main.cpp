@@ -8,6 +8,8 @@
 
 typedef std::array<std::pair<double, double>, 3> v3;
 
+
+// DEBUG HELPER FUCTIONS
 void printVerticesOfElement(const v3 &e) {
     std::cout << "0: " << e[0].first << " " << e[0].second <<
               ", 1: " << e[1].first << " " << e[1].second <<
@@ -18,8 +20,7 @@ void printPair(const std::pair<double, double> &v) {
     std::cout << v.first << " " << v.second << std::endl;
 }
 
-
-
+// FUNKCJE KSZTALTU
 double phi0(double zeta, double eta) {
     return -.5 * (zeta + eta);
 }
@@ -38,6 +39,7 @@ double rho(double x, double y){
 
 class TriEle {
 private:
+    // pochodne
     double diffQuotient_x(const std::function<double(double, double)> phi, double x, double y) {
         double delta = 1e-10;
         return (phi(x + delta, y) - phi(x - delta, y)) / (2 * delta);
@@ -47,52 +49,40 @@ private:
         double delta = 1e-10;
         return (phi(x, y + delta) - phi(x, y - delta)) / (2 * delta);
     }
-    double map_x(double zeta, double eta) {
-        double sum = 0;
-        for (int i = 0; i < 3; i++) {
-            sum += origVer[i].first * phi_k[i](zeta, eta);
-        }
-        return sum;
-    }
-    double map_y(double zeta, double eta) {
-        double sum = 0;
-        for (int i = 0; i < 3; i++) {
-            sum += origVer[i].second * phi_k[i](zeta, eta);
-        }
-        return sum;
-    }
+
+//    //    attempts below dont work
+//    double map_x(double zeta, double eta) {
+//        double sum = 0;
+//        for (int i = 0; i < 3; i++) {
+//            sum += origVer[i].first * phi_k[i](zeta, eta);
+//        }
+//        return sum;
+//    }
+//    double map_y(double zeta, double eta) {
+//        double sum = 0;
+//        for (int i = 0; i < 3; i++) {
+//            sum += origVer[i].second * phi_k[i](zeta, eta);
+//        }
+//        return sum;
+//    }
 //    std::function<double(double, double)> map_x ;
 //    std::function<double(double, double)> map_y ;
 public:
-//        auto map_x = [this](double zeta, double eta) {
-//            double sum = 0;
-//            for (int i = 0; i < 3; i++) {
-//                sum += locVer[i].first * phi_k[i](zeta, eta);
-//            }
-//            return sum;
-//        };
-//        auto map_y = [this](double zeta, double eta) {
-//            double sum = 0;
-//            for (int i = 0; i < 3; i++) {
-//                sum += locVer[i].second * phi_k[i](zeta, eta);
-//            }
-//            return sum;
-//        };
     std::pair<double, double> nablaPhik(double zeta, double eta, int k) {
-//        auto map_x = [this](double zeta, double eta) {
-//            double sum = 0;
-//            for (int i = 0; i < 3; i++) {
-//                sum += origVer[i].first * phi_k[i](zeta, eta);
-//            }
-//            return sum;
-//        };
-//        auto map_y = [this](double zeta, double eta) {
-//            double sum = 0;
-//            for (int i = 0; i < 3; i++) {
-//                sum += origVer[i].second * phi_k[i](zeta, eta);
-//            }
-//            return sum;
-//        };
+        auto map_x = [this](double zeta, double eta) {
+            double sum = 0;
+            for (int i = 0; i < 3; i++) {
+                sum += origVer[i].first * phi_k[i](zeta, eta);
+            }
+            return sum;
+        };
+        auto map_y = [this](double zeta, double eta) {
+            double sum = 0;
+            for (int i = 0; i < 3; i++) {
+                sum += origVer[i].second * phi_k[i](zeta, eta);
+            }
+            return sum;
+        };
         return {diffQuotient_x(phi_k[k], zeta, eta) *
                 diffQuotient_y(map_y, zeta, eta) / Jacobian(zeta, eta) -
                 diffQuotient_y(phi_k[k], zeta, eta) *
@@ -105,20 +95,20 @@ public:
 
 
     double Jacobian(double zeta, double eta) {
-//        auto map_x = [this](double zeta, double eta) {
-//            double sum = 0;
-//            for (int i = 0; i < 3; i++) {
-//                sum += origVer[i].first * phi_k[i](zeta, eta);
-//            }
-//            return sum;
-//        };
-//        auto map_y = [this](double zeta, double eta) {
-//            double sum = 0;
-//            for (int i = 0; i < 3; i++) {
-//                sum += origVer[i].second * phi_k[i](zeta, eta);
-//            }
-//            return sum;
-//        };
+        auto map_x = [this](double zeta, double eta) {
+            double sum = 0;
+            for (int i = 0; i < 3; i++) {
+                sum += origVer[i].first * phi_k[i](zeta, eta);
+            }
+            return sum;
+        };
+        auto map_y = [this](double zeta, double eta) {
+            double sum = 0;
+            for (int i = 0; i < 3; i++) {
+                sum += origVer[i].second * phi_k[i](zeta, eta);
+            }
+            return sum;
+        };
 
         return diffQuotient_x(map_x, zeta, eta) *
                diffQuotient_y(map_y, zeta, eta) -
@@ -127,9 +117,6 @@ public:
     }
 
     void initE() {
-
-
-        diffQuotient_x(Jacobian, 1,1);
 
         double xgaus[] = {-0.3333333, -0.0597158717, -0.0597158717, -0.8805682564, -0.7974269853, -0.7974269853,
                           0.5948539707};
@@ -155,20 +142,20 @@ public:
         if(m_<2)std::cout<<std::endl; //debug
     }
     void initF(){
-//        auto map_x = [this](double zeta, double eta) {
-//            double sum = 0;
-//            for (int i = 0; i < 3; i++) {
-//                sum += origVer[i].first * phi_k[i](zeta, eta);
-//            }
-//            return sum;
-//        };
-//        auto map_y = [this](double zeta, double eta) {
-//            double sum = 0;
-//            for (int i = 0; i < 3; i++) {
-//                sum += origVer[i].second * phi_k[i](zeta, eta);
-//            }
-//            return sum;
-//        };
+        auto map_x = [this](double zeta, double eta) {
+            double sum = 0;
+            for (int i = 0; i < 3; i++) {
+                sum += origVer[i].first * phi_k[i](zeta, eta);
+            }
+            return sum;
+        };
+        auto map_y = [this](double zeta, double eta) {
+            double sum = 0;
+            for (int i = 0; i < 3; i++) {
+                sum += origVer[i].second * phi_k[i](zeta, eta);
+            }
+            return sum;
+        };
         double xgaus[] = {-0.3333333, -0.0597158717, -0.0597158717, -0.8805682564, -0.7974269853, -0.7974269853,
                           0.5948539707};
         double ygaus[] = {-0.3333333, -0.0597158717, -0.8805682564, -0.0597158717, -0.7974269853, 0.5948539707,
