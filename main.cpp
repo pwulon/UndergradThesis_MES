@@ -1,313 +1,312 @@
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <vector>
-#include <array>
-#include <functional>
 #include <fstream>
 #include <cstdio>
+#include <initializer_list>
 
-typedef std::array<std::pair<double, double>, 3> v3;
+#include "Elements/TriangleElement.hpp"
+#include "Elements/Vertex2D.hpp"
+#include "FortunesAlgo/Fortunes.hpp"
+
+#include <eigen3/Eigen/SparseCholesky>
+#include <eigen3/Eigen/SparseLU>
 
 
-// DEBUG HELPER FUCTIONS
-void printVerticesOfElement(const v3 &e) {
-    std::cout << "0: " << e[0].first << " " << e[0].second <<
-              ", 1: " << e[1].first << " " << e[1].second <<
-              ", 2: " << e[2].first << " " << e[2].second << std::endl;
-}
+//double rho(double x, double y){
+////    if (x>-1e-1 && x<1e-1 && y>-1e-1 && y<1e-1)
+////        return 1.;
+//    return 1;
+//}
 
-void printPair(const std::pair<double, double> &v) {
-    std::cout << v.first << " " << v.second << std::endl;
-}
+//class TriEle {
+//private:
+//
+//    double zeta(double x, double y){
+//        double x1 = origVer[0].first;
+//        double y1 = origVer[0].second;
+//        double x2 = origVer[1].first;
+//        double y2 = origVer[1].second;
+//        double x3 = origVer[2].first;
+//        double y3 = origVer[2].second;
+//
+//        return (2*x1*y-x1*y2-x1*y3+y1*x2+y2*x3+y1*x3-2*y1*x-2*x3*y+2*x*y3-x2*y3)/(-x1*y3-y1*x2+x2*y3+y1*x3+x1*y2-y2*x3);
+//    }
+//
+//    double eta(double x, double y){
+//        double x1 = origVer[0].first;
+//        double y1 = origVer[0].second;
+//        double x2 = origVer[1].first;
+//        double y2 = origVer[1].second;
+//        double x3 = origVer[2].first;
+//        double y3 = origVer[2].second;
+//
+//        return -1/(-x1*y3-y1*x2+x2*y3+y1*x3+x1*y2-y2*x3)*(2*x1*y-x1*y2-x1*y3+y1*x3-2*x2*y+x2*y3-y2*x3-2*y1*x+y1*x2+2*y2*x);
+//    }
+//    double St(double x1,double x2,double x3,double y1, double y2, double y3){
+//        return fabs(-x1*(y3-y2)+x2*y3-x3*y2+(x3-x2)*y1 )*0.5;
+//    }
+//public:
+//    bool ismember(double x, double y){
+//        double x1 = origVer[0].first;
+//        double y1 = origVer[0].second;
+//        double x2 = origVer[1].first;
+//        double y2 = origVer[1].second;
+//        double x3 = origVer[2].first;
+//        double y3 = origVer[2].second;
+//
+//        double s1 = St(x1,x2,x3,y1,y2,y3);
+//        double s2 = St(x,x2,x3,y,y2,y3);
+//        double s3 = St(x1,x,x3,y1,y,y3);
+//        double s4 = St(x1,x2,x,y1,y2,y);
+//
+//        return fabs(-s1 + s2 + s3 + s4) < 1e-3;
+//    }
+//    double u_m(double x, double y, Eigen::VectorXd &c){
+//        double u = 0;
+//        for(int i=0; i<3; i++){
+//            u+= c[localLabel[i]]*phi_k[i](this->zeta(x, y),this->eta(x,y));
+//        }
+//        return u;
+//    }
+//};
 
-// FUNKCJE KSZTALTU
-double phi0(double zeta, double eta) {
-    return -.5 * (zeta + eta);
-}
+bool isBorder(int k, int row){
+    for(int i = 0; i<row; i++){
+        if(i==0 || i==row-1){
+            for(int j=0;j<row;j++)
+                if(k == j*row + i) return true;
 
-double phi1(double zeta, double eta) {
-    return .5 * (1 + zeta);
-}
-
-double phi2(double zeta, double eta) {
-    return .5 * (1 + eta);
-}
-
-double rho(double x, double y){
-    return exp(-.5*(pow(x,2)+pow(y,2)));
-}
-
-template<size_t n>
-std::array<double, n> solveLU(std::array<std::array<double, n>, n> &A, std::array<double, n> &y){
-
-    std::array<std::array<double, n>, n> LU{};
-//    std::array<std::array<double, n>, n> U{};
-
-    for(int i = 0; i < n ; i++ ){
-       for(int j = i; j<n; j++) {
-//           if(i == j) Lu[i][j] = 1.;
-           double sum = 0.;
-           for (int k = 0; k < i; k++) {
-               sum += LU[i][k] * LU[k][j];
-           }
-           LU[i][j] = A[i][j] - sum;
-       }
-        for(int j = i + 1; j<n; j++){
-           double sum = 0.;
-           for(int k = 0;k<i;k++){
-               sum += LU[j][k]*LU[k][i];
-           }
-           LU[j][i] = (A[j][i] - sum)/LU[i][i];
-
-       }
-    }
-
-    std::array<double, n> z{};
-    for(int i = 0; i < n; i++){
-        double sum = 0;
-        for( int j = 0; j <i; j++){
-            sum += z[j]*LU[i][j];
+        }else
+        {
+            if(k == i || k == row*(row - 1) + i) return true;
         }
-        z[i] = (y[i] - sum);
     }
 
-    std::array<double, n> c{};
-    for(int i = n - 1; i >= 0; i--){
-        double sum = 0;
-        for( int j = n-1; j >i; j--){
-            sum += c[j]*LU[i][j];
-        }
-        c[i] = (z[i] - sum)/LU[i][i];
-    }
-
-    return c;
+    return false;
 }
 
-class TriEle {
-private:
-    // pochodne
-    double diffQuotient_x(const std::function<double(double, double)> phi, double x, double y) {
-        double delta = 1e-10;
-        return (phi(x + delta, y) - phi(x - delta, y)) / (2 * delta);
+void pointsRot(std::vector<Point2D> &points, double ang){
+    double alfa = ang*M_PI/180.;
+    double sin1 = sin(alfa);
+    double cos1 = cos(alfa);
+
+    for (int i = 0; i < points.size(); i++) {
+        double x = points[i].x*cos1 - points[i].y*sin1;
+        double y = points[i].x*sin1 + points[i].y*cos1;
+        points[i].x = x;
+        points[i].y = y;
     }
 
-    double diffQuotient_y(const std::function<double(double, double)> phi, double x, double y) {
-        double delta = 1e-10;
-        return (phi(x, y + delta) - phi(x, y - delta)) / (2 * delta);
-    }
-
-    // //    diff flag: 0 - no diff, 1 - diff on x (zeta), 2 - diff on y (eta)
-    double map_x(double zeta, double eta, int diffFlag = 0) {
-        double sum = 0;
-        for (int i = 0; i < 3; i++) {
-            switch (diffFlag) {
-                case 0:
-                    sum += origVer[i].first * phi_k[i](zeta, eta);
-                    break;
-                case 1:
-                    sum += origVer[i].first * diffQuotient_x(phi_k[i],zeta,eta);
-                    break;
-                case 2:
-                    sum += origVer[i].first * diffQuotient_y(phi_k[i],zeta,eta);
-                    break;
-            }
-        }
-        return sum;
-    }
-    double map_y(double zeta, double eta, int diffFlag = 0) {
-        double sum = 0;
-        for (int i = 0; i < 3; i++) {
-            switch (diffFlag) {
-                case 0:
-                    sum += origVer[i].second * phi_k[i](zeta, eta);
-                    break;
-                case 1:
-                    sum += origVer[i].second * diffQuotient_x(phi_k[i],zeta,eta);
-                    break;
-                case 2:
-                    sum += origVer[i].second * diffQuotient_y(phi_k[i], zeta, eta);
-                    break;
-            }
-        }
-        return sum;
-    }
-public:
-    std::pair<double, double> nablaPhik(double zeta, double eta, int k) {
-        return {diffQuotient_x(phi_k[k], zeta, eta) *
-                map_y(zeta, eta,2) / Jacobian(zeta, eta)
-                - diffQuotient_y(phi_k[k], zeta, eta) * map_y(zeta, eta,1) / Jacobian(zeta, eta),
-                -diffQuotient_x(phi_k[k], zeta, eta) * map_x(zeta, eta,2) / Jacobian(zeta, eta)
-                + diffQuotient_y(phi_k[k], zeta, eta) * map_x(zeta, eta, 1) / Jacobian(zeta, eta)};
-    }
-
-
-    double Jacobian(double zeta, double eta) {
-        return map_x(zeta, eta, 1) *
-                map_y(zeta, eta,2) -
-                map_y(zeta, eta,1) *
-                map_x(zeta, eta, 2);
-    }
-
-    void initE() {
-
-        double xgaus[] = {-0.3333333, -0.0597158717, -0.0597158717, -0.8805682564, -0.7974269853, -0.7974269853,
-                          0.5948539707};
-        double ygaus[] = {-0.3333333, -0.0597158717, -0.8805682564, -0.0597158717, -0.7974269853, 0.5948539707,
-                          -0.7974269853};
-        double wgaus[] = {0.45, 0.2647883055, 0.2647883055, 0.2647883055, 0.251878361, 0.251878361, 0.251878361};
-
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                double sum = 0;
-                for (int k = 0; k < 7; k++) {
-                    std::pair<double, double> nablaphi_i = nablaPhik(xgaus[k], ygaus[k], i);
-                    std::pair<double, double> nablaphi_j = nablaPhik(xgaus[k], ygaus[k], j);
-                    sum += wgaus[k] * Jacobian(xgaus[k], ygaus[k])
-                           * (nablaphi_i.first * nablaphi_j.first
-                              + nablaphi_i.second * nablaphi_j.second);
-                }
-                E[i][j] = sum;
-                if(m_<2)std::cout<<sum<<"\t"; //debug
-            }
-            if(m_<2)std::cout<<std::endl; //debug
-        }
-        if(m_<2)std::cout<<std::endl; //debug
-    }
-    void initF(){
-        double xgaus[] = {-0.3333333, -0.0597158717, -0.0597158717, -0.8805682564, -0.7974269853, -0.7974269853,
-                          0.5948539707};
-        double ygaus[] = {-0.3333333, -0.0597158717, -0.8805682564, -0.0597158717, -0.7974269853, 0.5948539707,
-                          -0.7974269853};
-        double wgaus[] = {0.45, 0.2647883055, 0.2647883055, 0.2647883055, 0.251878361, 0.251878361, 0.251878361};
-
-        for(int j =0 ;j<3;j++){
-            double sum = 0;
-            for (int k = 0; k < 7; k++){
-                sum += wgaus[k] * Jacobian(xgaus[k], ygaus[k]) *
-                        phi_k[j](xgaus[k], ygaus[k]) *
-                        rho(map_x(xgaus[k], ygaus[k]),map_y(xgaus[k], ygaus[k]));
-            }
-            F[j] = sum;
-            if(m_<2)std::cout<<sum<<"\t"; //debug
-        }
-        if(m_<2)std::cout<<std::endl<<std::endl; //debug
-    }
-
-    int m_;
-    v3 origVer;
-    std::array<int, 3> localLabel;
-    std::array<std::array<double, 3>, 3> E;
-    std::array<double, 3> F;
-    std::array<std::function<double(double, double)>, 3> phi_k;
-
-    TriEle(int m, v3 orig, std::array<int, 3> loc) : m_{m}, localLabel{loc} {
-        phi_k[0] = &phi0;
-        phi_k[1] = &phi1;
-        phi_k[2] = &phi2;
-        origVer[0] = orig[0];
-        origVer[1] = orig[1];
-        origVer[2] = orig[2];
-
-        initE();
-        initF();
-    }
-};
+}
 
 int main() {
-    const double L = 10;
-    const int row = 11; //vertices number
-    const size_t N = row*row; //vertices number
+
+    double liczbafalowa = 10.465;
+    const int row = 3; //vertices number
+    double L = 2.4;
+    //vertices number
 
 
     double horLen = L / (row - 1);
 
-    std::array<std::pair<double, double>, N> verticies{};
-    for (int i = 0; i < row; i++) {
-        for (int j = 0; j < row; j++)
-            verticies[i * row + j] = {-5.0 + horLen * i, -5.0 + horLen * j};
+    std::cout<<"Vertices CREATION BEGIN"<<std::endl;
+    std::vector<Vertex2D> vertices;
+    std::vector<Point2D> points;
+
+    double z = 1;
+
+    for(int q = 0; q<5; q++){
+        if(q>0){
+            L -= horLen*z;
+            horLen -= horLen*.5*z;
+        }
+
+        for(int k =0; k<(row)*(row);k++){
+            int i = k/(row);
+            int j = k%(row);
+
+            if(q==0 || k!=(row)*(row)/2){
+                Point2D p(- L/2 + (horLen * i), - L/2 + (horLen * j ));
+                points.emplace_back(p);
+                vertices.emplace_back(p, q==0 && isBorder(k,row));
+            }
+
+        }
     }
+    const size_t N = vertices.size();
+
+
+
+    std::ofstream outputFile("vertices.txt");
+    for(auto & vertex : vertices){
+        outputFile <<vertex.x() << ' ' << vertex.y() <<  ' ' << vertex.isBorder << std::endl;
+    }
+    outputFile.close();
+
+    std::ofstream outputFilep("points.txt");
+    for(auto & vertex : points){
+        outputFilep <<vertex.x << ' ' << vertex.y << std::endl;
+    }
+    outputFilep.close();
+    std::cout<<"Vertices CREATION END"<<std::endl<<std::endl;
+
+
+    std::vector<std::vector<int>> elementsIdx;
+
+    pointsRot(points, 1);
+    build(points, elementsIdx);
+
+    std::cout<<elementsIdx.size()<<std::endl;
 
 
     const size_t nEle = (row - 1) * (row - 1) * 2;
-    std::vector<TriEle> Elements;
+    std::cout<<nEle<<std::endl;
 
-    for (int i = 0; i < (row - 1); i++) {
-        for (int j = 0; j < (row - 1); j++) {
-            int e = 2 * (i * (row - 1) + j);
-            std::array<int, 3> iVer = {i * row + j, (i + 1) * row + j, i * row + j + 1};
-            v3 ver = {verticies[iVer[0]],
-                       verticies[iVer[1]],
-                       verticies[iVer[2]]};
+    std::vector<fem::TriangleElement> Elements;
 
-            Elements.emplace_back(e, ver, iVer);
-            iVer = {(i + 1) * row + j, (i + 1) * row + j + 1, i * row + j + 1};
-            ver = {verticies[iVer[0]],
-                    verticies[iVer[1]],
-                    verticies[iVer[2]]};
+    std::cout<<"Elements CREATION BEGIN"<<std::endl;
 
-            Elements.emplace_back(e + 1, ver, iVer);
-        }
+    for(auto &idxs:elementsIdx){
+        Elements.emplace_back(0, vertices, std::initializer_list<int>{idxs[0],idxs[1],idxs[2]}, liczbafalowa);
     }
+    std::cout<<"Elements CREATION END"<<std::endl<<std::endl;
 
-    std::array<std::array<double, N>,N> S{};
-    for(int m = 0; m<nEle; m++){
-        std::array<std::array<double,3>,3>&E = Elements[m].E;
-        std::array<int,3>&glob = Elements[m].localLabel;
+    std::cout<<Elements[0].vertices_<<std::endl;
+    std::cout<<Elements[1].vertices_<<std::endl;
+
+    std::cout<<"Tiplets CREATION BEGIN"<<std::endl;
+    std::vector<Eigen::Triplet<double>> tripletListS{};
+    for(auto &ele:Elements){
+        std::vector<std::vector<double>> &E = ele.E_;
+        std::vector<int> &glob = ele.globalVectorIdx;
         for (int k=0;k<3;k++){
             for(int l = 0; l<3; l++ ){
                 int i = glob[k];
                 int j = glob[l];
-                S[i][j] = S[i][j] + E[k][l];
+                if(vertices[i].isBorder){
+//                    std::cout<<i<<" "<<j<<" "<<m<<std::endl;
+                }
+                else{
+                    tripletListS.emplace_back(i, j, E[k][l]);
+                }
+
             }
         }
     }
-    Elements.clear();
+    std::cout<<"Triplets CREATION END"<<std::endl<<std::endl;
 
-    std::array<double,N> F{};
-    for(int m = 0; m<nEle; m++){
-        std::array<double, 3>&Fm = Elements[m].F;
-        std::array<int,3>&glob = Elements[m].localLabel;
+    std::ofstream outputFileEle("elementsVerticesIdxes.txt");
+    for(auto &e:Elements){
+        outputFileEle<<e.globalVectorIdx[0]<<" "<<e.globalVectorIdx[1]<<" "<<e.globalVectorIdx[2]<<"\n";
+    }
+    outputFileEle.close();
+
+//    Eigen::VectorXd F(N);
+    std::vector<double> F(N);
+    for(auto &ele:Elements){
+        std::vector<double> &Fm = ele.F_;
+        std::vector<int> &glob = ele.globalVectorIdx;
         for (int k=0;k<3;k++){
                 int i = glob[k];
-                F[i] = F[i] + Fm[k];
-        }
-    }
-
-    //i * 10 + j = k
-    for(int i = 0; i<row; i++){
-        std::array<int, 4> k = {i * row + 0,i * row + row-1,0 * row + i,(row - 1)* row + i};
-        for(int j = 0;j<N;j++) {
-            for(int k_:k)
-            {
-                if(k_==j){
-                    S[k_][j] = 1.;
-                    F[k_] = 0.;
+                if(vertices[i].isBorder){
+                    F[i] = 0;
                 }else{
-                    S[k_][j] = 0;
+                    F[i] += Fm[k];
                 }
+        }
+    }
+
+    for(int i = 0; i<row; i++){
+        if(i==0 || i==row-1){
+            for(int j=0;j<row;j++){
+                tripletListS.emplace_back(j*row  + i, j*row + i, 1.);
             }
+        }else
+        {
+            tripletListS.emplace_back(i, i, 1.);
+            tripletListS.emplace_back(row*(row - 1) + i, row*(row - 1) + i, 1.);
         }
     }
+//    F[(row*row)/2] = 1;// F[(row*row)/2 - row] = 1; F[(row*row)/2 + row] = 1;
+//    F[(row*row)/2 + 1] = 1; F[(row*row)/2 - row + 1] = 1; F[(row*row)/2 + row + 1] = 1;
+//    F[(row*row)/2 - 1] = 1; F[(row*row)/2 - row- 1] = 1; F[(row*row)/2 + row- 1] = 1;
 
-    FILE* file;
-    file = fopen("S.txt","w");
-    for(int i = 0; i<N; i++){
-        for(int j = 0; j<N; j++) {
-            fprintf(file,"%.2f\t",S[i][j]);
+    bool debug = false;
+    if(debug){
+        std::vector< std::vector<double> > St (N, std::vector<double>(N));
+
+        for(auto t:tripletListS){
+            St[t.row()][t.col()] += t.value();
         }
-        fprintf(file,"\n");
+
+        FILE* fileS;
+        FILE* fileF;
+        fileS = fopen("resultS.txt","w");
+        fileF = fopen("resultF.txt","w");
+
+        for(int i = 0; i<row*row; i++){
+            fprintf(fileF,"%g\n", F[i]);
+            for(int j = 0; j<row*row; j++)
+                fprintf(fileS,"%.2f\t", St[i][j]);
+            fprintf(fileS,"\n");
+        }
+        fclose(fileS);
+        fclose(fileF);
     }
-    fclose(file);
 
-    file = fopen("F.txt","w");
-    for(int j = 0; j<N; j++) fprintf(file,"%g\n",F[j]);
-    fclose(file);
+    Eigen::VectorXd EF(N);
+    for(int i = 0; i<row*row; i++)
+        EF[i] = F[i];
+
+    std::cout<<"SparseMatrix CREATION BEGIN"<<std::endl;
+    Eigen::SparseMatrix<double> S(N, N);
+    S.setFromTriplets(tripletListS.begin(), tripletListS.end());
+//    tripletListS.clear();
+    std::cout<<"SparseMatrix CREATION END"<<std::endl<<std::endl;
+
+    std::cout<<"Solver CREATION BEGIN"<<std::endl;
+    Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> >  solver;
+
+    solver.analyzePattern(S);
+
+    solver.factorize(S);
+
+    std::cout<<"Solver CREATION END"<<std::endl<<std::endl;
+
+    Eigen::VectorXd c(N);
+
+    std::cout<<"Solving BEGIN"<<std::endl;
+    c = solver.solve(EF);
+    std::cout<<"Solving END"<<std::endl<<std::endl;
+
+    std::ofstream outputFileC("c.txt");
+    for (int i = 0; i<N; i ++){
+        outputFileC<<c[i]<<std::endl;
+    }
+    outputFileC.close();
 
 
-    auto c = solveLU(S,F);
-    file = fopen("result.txt","w");
-    for(int j = 0; j<N; j++) fprintf(file,"%g %g %g\n",verticies[j].first, verticies[j].second, c[j]);
-    fclose(file);
 
+//    double dx = 0.01;
+//    int ni = int(L/dx + 1);
+//    for(int i = 0; i <ni; i++ ){
+//        for(int j = 0; j <ni; j++ ){
+//            double x = i*dx - L/2.;
+//            double y = j*dx - L/2.;
+//            double u = 0;
+//            for(auto e:Elements){
+//                if(e.ismember(x,y)){
+//                    u = e.u_m(x,y, c);
+//                    continue;
+//                }
+//
+//            }
+//
+//            fprintf(file,"%g\t%g\t%g\n",x , y, fabs(u));
+//        }
+//        fprintf(file,"\n");
+//    }
+//    fclose(file);
     return 0;
 }
