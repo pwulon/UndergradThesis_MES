@@ -18,6 +18,7 @@ namespace fem {
                                      double k) : m_{m}, vertices_{&ver}, globalVectorIdx{globIndx}, k_{k} {
         F_ = std::vector<double>(3);
         E_ = std::vector<std::vector<double>>(3, std::vector<double>(3));
+        initJacob();
         initE();
         initF();
     }
@@ -26,13 +27,13 @@ namespace fem {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 for (int k = 0; k < 7; k++) {
-                    std::pair<double, double> nablaphi_i = nablaPhik(xgaus[k], ygaus[k], i);
-                    std::pair<double, double> nablaphi_j = nablaPhik(xgaus[k], ygaus[k], j);
-                    E_[i][j] += wgaus[k] * Jacobian(fem::xgaus[k], fem::ygaus[k])
-                                * (-(nablaphi_i.first * nablaphi_j.first
-                                     + nablaphi_i.second * nablaphi_j.second) +
-                                   pow(k_, 2) *
-                                   linearBaseFunc[i](fem::xgaus[k], fem::ygaus[k]) * linearBaseFunc[j](fem::xgaus[k], fem::ygaus[k]));
+                    std::pair<double, double> nablaphi_i = nablaPhik(xgaus[k], ygaus[k], jacob_[k], i);
+                    std::pair<double, double> nablaphi_j = nablaPhik(xgaus[k], ygaus[k], jacob_[k], j);
+                    E_[i][j] += wgaus[k] * jacob_[k] * (
+                            -(nablaphi_i.first * nablaphi_j.first +
+                            nablaphi_i.second * nablaphi_j.second) +
+                                pow(k_, 2) *
+                               linearBaseFunc[i](fem::xgaus[k], fem::ygaus[k]) * linearBaseFunc[j](fem::xgaus[k], fem::ygaus[k]));
                 }
 //                if (m_ < 2)std::cout << E_[i][j] << "\t"; //debug
             }
@@ -45,7 +46,7 @@ namespace fem {
         for (int j = 0; j < 3; j++) {
             if(!globalVector(j).isBorder){
                 for (int k = 0; k < 7; k++) {
-                    F_[j] += wgaus[k] * Jacobian(xgaus[k], ygaus[k]) *
+                    F_[j] += wgaus[k] * jacob_[k] *
                              linearBaseFunc[j](xgaus[k], ygaus[k]) *
                              rho(map_x(xgaus[k], ygaus[k]), map_y(xgaus[k], ygaus[k]));
                 }
@@ -65,12 +66,11 @@ namespace fem {
                map_x(zeta, eta, 2);
     }
 
-    std::pair<double, double> TriangleElement::nablaPhik(double &zeta, double &eta, int &k) {
-        return {diffQuotient_x(linearBaseFunc[k], zeta, eta) *
-                map_y(zeta, eta,2) / Jacobian(zeta, eta)
-                - diffQuotient_y(linearBaseFunc[k], zeta, eta) * map_y(zeta, eta,1) / Jacobian(zeta, eta),
-                -diffQuotient_x(linearBaseFunc[k], zeta, eta) * map_x(zeta, eta,2) / Jacobian(zeta, eta)
-                + diffQuotient_y(linearBaseFunc[k], zeta, eta) * map_x(zeta, eta, 1) / Jacobian(zeta, eta)};
+    std::pair<double, double> TriangleElement::nablaPhik(double &zeta, double &eta, double &jacob, int &k) {
+        return {diffQuotient_x(linearBaseFunc[k], zeta, eta) * map_y(zeta, eta,2) / jacob
+                - diffQuotient_y(linearBaseFunc[k], zeta, eta) * map_y(zeta, eta,1) / jacob,
+                -diffQuotient_x(linearBaseFunc[k], zeta, eta) * map_x(zeta, eta,2) / jacob
+                + diffQuotient_y(linearBaseFunc[k], zeta, eta) * map_x(zeta, eta, 1) / jacob};
     }
 
     double TriangleElement::map_x(double &zeta, double &eta, int diffFlag) {
@@ -111,6 +111,12 @@ namespace fem {
 
     Vertex2D TriangleElement::globalVector(int &i){
         return (*vertices_)[globalVectorIdx[i]];
+    }
+
+    void TriangleElement::initJacob() {
+        for(int k = 0; k<7; k++){
+            jacob_.push_back(Jacobian(fem::xgaus[k],fem::ygaus[k]));
+        }
     }
 
     double phi0(double &zeta, double &eta) {

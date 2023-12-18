@@ -12,13 +12,13 @@ class Vertex2D{
 public:
     int id_;
 
-    std::shared_ptr<Point2D> point;
+    double x_, y_;
     bool isBorder;
 
-    Vertex2D(Point2D &pos, bool b = false): point{std::make_shared<Point2D>(pos)}, isBorder{b}{};
+    Vertex2D(Point2D &pos, bool b = false): x_{pos.x}, y_{pos.y}, isBorder{b}{};
 
-    double x() { return point->x; }
-    double y() { return point->y; }
+    double x() { return this->x_; }
+    double y() { return this->y_; }
 
 };
 

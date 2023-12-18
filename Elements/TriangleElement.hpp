@@ -26,10 +26,11 @@ namespace fem{
         private:
             void initE();
             void initF();
+            void initJacob();
             double Jacobian(double &zeta, double &eta);
             double map_x(double &zeta, double &eta, int diffFlag = 0);
             double map_y(double &zeta, double &eta, int diffFlag = 0);
-            std::pair<double, double> nablaPhik(double &zeta, double &eta, int &k);
+            std::pair<double, double> nablaPhik(double &zeta, double &eta, double &jacob, int &k);
             Vertex2D globalVector(int &i);
     public:
             int m_;
@@ -38,6 +39,7 @@ namespace fem{
             const std::vector<Vertex2D> *vertices_;
             std::vector<std::vector<double>> E_;
             std::vector<double> F_;
+            std::vector<double> jacob_;
             std::vector<std::function<double(double&, double&)>> linearBaseFunc {&phi0, &phi1, &phi2};
 
             TriangleElement(int m, std::vector<Vertex2D> &ver, std::initializer_list<int> globIndx, double k = 1);

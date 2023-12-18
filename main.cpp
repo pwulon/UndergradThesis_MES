@@ -103,7 +103,7 @@ void pointsRot(std::vector<Point2D> &points, double ang){
 int main() {
 
     double liczbafalowa = 10.465;
-    const int row = 3; //vertices number
+    const int row = 101; //vertices number
     double L = 2.4;
     //vertices number
 
@@ -114,26 +114,17 @@ int main() {
     std::vector<Vertex2D> vertices;
     std::vector<Point2D> points;
 
-    double z = 1;
 
-    for(int q = 0; q<5; q++){
-        if(q>0){
-            L -= horLen*z;
-            horLen -= horLen*.5*z;
-        }
+    for(int k =0; k<(row)*(row);k++){
+        int i = k/(row);
+        int j = k%(row);
 
-        for(int k =0; k<(row)*(row);k++){
-            int i = k/(row);
-            int j = k%(row);
+//        Point2D p(- L/2 + (horLen * i), - L/2 + (horLen * j ));
+        points.emplace_back(- L/2 + (horLen * i), - L/2 + (horLen * j ));
+        vertices.emplace_back(points[k], isBorder(k,row));
 
-            if(q==0 || k!=(row)*(row)/2){
-                Point2D p(- L/2 + (horLen * i), - L/2 + (horLen * j ));
-                points.emplace_back(p);
-                vertices.emplace_back(p, q==0 && isBorder(k,row));
-            }
-
-        }
     }
+
     const size_t N = vertices.size();
 
 
