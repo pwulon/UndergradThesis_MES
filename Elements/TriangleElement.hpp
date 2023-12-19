@@ -14,6 +14,10 @@
 #include "Vertex2D.hpp"
 
 namespace fem{
+    enum type{
+        LIN = 1, QUAD = 2
+    };
+
     double lin_phi0(double &zeta, double &eta);
     double lin_phi1(double &zeta, double &eta);
     double lin_phi2(double &zeta, double &eta);
@@ -48,9 +52,9 @@ namespace fem{
             std::vector<std::vector<double>> E_;
             std::vector<double> F_;
             std::vector<double> jacob_;
-            std::vector<std::function<double(double&, double&)>> linearBaseFunc {&lin_phi0, &lin_phi1, &lin_phi2};
+            std::vector<std::function<double(double&, double&)>> linearBaseFunc;
 
-            TriangleElement(int m, std::vector<Vertex2D> &ver, std::vector<int> &globIndx, double k = 1);
+            TriangleElement(int m, std::vector<Vertex2D> &ver, std::vector<int> &globIndx, double k = 1, type t = LIN);
     };
 }
 

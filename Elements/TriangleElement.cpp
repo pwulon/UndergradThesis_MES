@@ -6,6 +6,9 @@
 
 
 namespace fem {
+
+
+
     std::vector<double> xgaus = {-0.3333333, -0.0597158717, -0.0597158717, -0.8805682564, -0.7974269853, -0.7974269853,
                                  0.5948539707};
     std::vector<double> ygaus  = {-0.3333333, -0.0597158717, -0.8805682564, -0.0597158717, -0.7974269853, 0.5948539707,
@@ -15,9 +18,16 @@ namespace fem {
 
     TriangleElement::TriangleElement(int m, std::vector<Vertex2D> &ver,
                                      std::vector<int> &globIndx,
-                                     double k) : m_{m}, vertices_{&ver}, globalVectorIdx{globIndx}, k_{k} {
-        F_ = std::vector<double>(3);
-        E_ = std::vector<std::vector<double>>(3, std::vector<double>(3));
+                                     double k, type t) : m_{m}, vertices_{&ver}, globalVectorIdx{globIndx}, k_{k} {
+        if(type(t) == 1){
+            std::cout<<"lin"<<std::endl;
+            linearBaseFunc  = {&lin_phi0, &lin_phi1, &lin_phi2};
+        } else if(type(t) == 2){
+            std::cout<<"quad"<<std::endl;
+            linearBaseFunc = {&quad_phi0, &quad_phi1, &quad_phi2, &quad_phi3, &quad_phi4, &quad_phi5};
+        }
+        F_ = std::vector<double>(linearBaseFunc.size());
+        E_ = std::vector<std::vector<double>>(linearBaseFunc.size(), std::vector<double>(linearBaseFunc.size()));
         initJacob();
         initE();
         initF();
@@ -30,8 +40,8 @@ namespace fem {
     }
 
     void TriangleElement::initE() {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < linearBaseFunc.size(); i++) {
+            for (int j = 0; j < linearBaseFunc.size(); j++) {
                 for (int k = 0; k < 7; k++) {
                     std::pair<double, double> nablaphi_i = nablaPhik(xgaus[k], ygaus[k], jacob_[k], i);
                     std::pair<double, double> nablaphi_j = nablaPhik(xgaus[k], ygaus[k], jacob_[k], j);
@@ -49,7 +59,7 @@ namespace fem {
     }
 
     void TriangleElement::initF() {
-        for (int j = 0; j < 3; j++) {
+        for (int j = 0; j <  linearBaseFunc.size(); j++) {
             if(!globalVector(j).isBorder){
                 for (int k = 0; k < 7; k++) {
                     F_[j] += wgaus[k] * jacob_[k] *
@@ -81,7 +91,7 @@ namespace fem {
 
     double TriangleElement::map_x(double &zeta, double &eta, int diffFlag) {
         double sum = 0;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < linearBaseFunc.size(); i++) {
             switch (diffFlag) {
                 case 0:
                     sum += globalVector(i).x() * linearBaseFunc[i](zeta, eta);
@@ -99,7 +109,7 @@ namespace fem {
 
     double TriangleElement::map_y(double &zeta, double &eta, int diffFlag) {
         double sum = 0;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < linearBaseFunc.size(); i++) {
             switch (diffFlag) {
                 case 0:
                     sum += globalVector(i).y() * linearBaseFunc[i](zeta, eta);
@@ -172,15 +182,17 @@ namespace fem {
     }
 
     double quad_phi3(double &zeta, double &eta) {
-        return  .5 * quad_phi1(zeta, eta)*quad_phi2(zeta, eta);
+        return  4. * lin_phi0(zeta, eta)*lin_phi1(zeta, eta);
+
     }
 
     double quad_phi4(double &zeta, double &eta) {
-        return  .5 * quad_phi0(zeta, eta)*quad_phi2(zeta, eta);
+        return  4. * lin_phi1(zeta, eta)*lin_phi2(zeta, eta);
+
     }
 
     double quad_phi5(double &zeta, double &eta) {
-        return  .5 * quad_phi0(zeta, eta)*quad_phi1(zeta, eta);
+        return  4. * lin_phi0(zeta, eta)*lin_phi2(zeta, eta);
     }
 
 }

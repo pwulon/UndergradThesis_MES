@@ -83,7 +83,7 @@ bool isBorder(int k, int row){
 
         }else
         {
-//            if(k == i || k == row*(row - 1) + i) return true;
+            if(k == i || k == row*(row - 1) + i) return true;
         }
     }
 
@@ -137,7 +137,7 @@ struct SegmentHash {
 int main() {
 
     double liczbafalowa = 10.465;
-    const int row = 6; //vertices number
+    const int row = 5; //vertices number
     double L = 2.4;
     //vertices number
 
@@ -157,7 +157,6 @@ int main() {
         vertices.emplace_back(points[k], isBorder(k,row));
     }
 
-    const size_t N = vertices.size();
 
 
 
@@ -176,7 +175,7 @@ int main() {
 
 //    std::cout<<elementsIdx.size()<<std::endl;
 
-    {
+    if(1){
 
 //TODO przechodzac po vectoerze indeksow elementu jako boki sprawdzamy czy element jest w secie jesli nie liczymy srodek tego boku dodajemy wierzcholek i indeksy tego boku do setu
 // set powinien miec indeks wierzcholka pierwszego, drugiego i utworzonego;
@@ -196,34 +195,69 @@ int main() {
                 }
             }
         }
-        for (const auto& element : test_set) {
-            std::cout << element.i1_ << " " << element.i2_ << " " << element.i3_ << std::endl;
-        }
+//        for (const auto& element : test_set) {
+//            std::cout << element.i1_ << " " << element.i2_ << " " << element.i3_ << std::endl;
+//        }
 
     }
 
-    const size_t nEle = (row - 1) * (row - 1) * 2;
-    std::cout<<nEle<<std::endl;
+    std::ofstream outputFile("vertices.txt");
+    for(auto & vertex : vertices){
+        outputFile <<vertex.x() << ' ' << vertex.y() <<  ' ' << vertex.isBorder << std::endl;
+    }
+    outputFile.close();
+
+    std::ofstream outputFileEle("elementsVerticesIdxes.txt");
+    for(auto &e:elementsIdx){
+        for(auto &i:e){
+            outputFileEle<<i<<" ";
+        }
+        outputFileEle<<"\n";
+    }
+    outputFileEle.close();
+
+    const int N = vertices.size();
 
     std::vector<fem::TriangleElement> Elements;
 
     std::cout<<"Elements CREATION BEGIN"<<std::endl;
 
     for(auto &idxs:elementsIdx){
-        Elements.emplace_back(0, vertices, idxs, liczbafalowa);
+        Elements.emplace_back(0, vertices, idxs, liczbafalowa, fem::QUAD);
     }
     std::cout<<"Elements CREATION END"<<std::endl<<std::endl;
 
-    std::cout<<Elements[0].vertices_<<std::endl;
-    std::cout<<Elements[1].vertices_<<std::endl;
+//    for(auto &ele:Elements){
+//        double x = -1, y =-1;
+//        std::cout<<ele.linearBaseFunc[0](x,y)<<" "<<ele.linearBaseFunc[1](x,y)<<" "<<ele.linearBaseFunc[2](x,y)<<" "<<
+//        ele.linearBaseFunc[3](x,y)<<" "<<ele.linearBaseFunc[4](x,y)<<" "<<ele.linearBaseFunc[5](x,y)<<std::endl;
+//        x = 1; y =-1;
+//        std::cout<<ele.linearBaseFunc[0](x,y)<<" "<<ele.linearBaseFunc[1](x,y)<<" "<<ele.linearBaseFunc[2](x,y)<<" "<<
+//                 ele.linearBaseFunc[3](x,y)<<" "<<ele.linearBaseFunc[4](x,y)<<" "<<ele.linearBaseFunc[5](x,y)<<std::endl;
+//        x = -1, y =1;
+//        std::cout<<ele.linearBaseFunc[0](x,y)<<" "<<ele.linearBaseFunc[1](x,y)<<" "<<ele.linearBaseFunc[2](x,y)<<" "<<
+//                 ele.linearBaseFunc[3](x,y)<<" "<<ele.linearBaseFunc[4](x,y)<<" "<<ele.linearBaseFunc[5](x,y)<<std::endl;
+//        x = 0, y =-1;
+//        std::cout<<ele.linearBaseFunc[0](x,y)<<" "<<ele.linearBaseFunc[1](x,y)<<" "<<ele.linearBaseFunc[2](x,y)<<" "<<
+//                 ele.linearBaseFunc[3](x,y)<<" "<<ele.linearBaseFunc[4](x,y)<<" "<<ele.linearBaseFunc[5](x,y)<<std::endl;
+//        x = 0, y =0;
+//        std::cout<<ele.linearBaseFunc[0](x,y)<<" "<<ele.linearBaseFunc[1](x,y)<<" "<<ele.linearBaseFunc[2](x,y)<<" "<<
+//                 ele.linearBaseFunc[3](x,y)<<" "<<ele.linearBaseFunc[4](x,y)<<" "<<ele.linearBaseFunc[5](x,y)<<std::endl;
+//        x = -1, y =0;
+//        std::cout<<ele.linearBaseFunc[0](x,y)<<" "<<ele.linearBaseFunc[1](x,y)<<" "<<ele.linearBaseFunc[2](x,y)<<" "<<
+//                 ele.linearBaseFunc[3](x,y)<<" "<<ele.linearBaseFunc[4](x,y)<<" "<<ele.linearBaseFunc[5](x,y)<<std::endl;
+//        std::cout<<std::endl;
+//    }
 
     std::cout<<"Tiplets CREATION BEGIN"<<std::endl;
+
     std::vector<Eigen::Triplet<double>> tripletListS{};
+
     for(auto &ele:Elements){
         std::vector<std::vector<double>> &E = ele.E_;
         std::vector<int> &glob = ele.globalVectorIdx;
-        for (int k=0;k<3;k++){
-            for(int l = 0; l<3; l++ ){
+        for (int k=0 ; k < glob.size();k++){
+            for(int l = 0; l < glob.size(); l++ ){
                 int i = glob[k];
                 int j = glob[l];
                 if(vertices[i].isBorder){
@@ -236,29 +270,22 @@ int main() {
             }
         }
     }
+
+    for(int i = 0; i < vertices.size(); i++){
+        if(vertices[i].isBorder){
+            tripletListS.emplace_back(i,i,1.);
+        }
+    }
     std::cout<<"Triplets CREATION END"<<std::endl<<std::endl;
 
-    std::ofstream outputFile("vertices.txt");
-    for(auto & vertex : vertices){
-        outputFile <<vertex.x() << ' ' << vertex.y() <<  ' ' << vertex.isBorder << std::endl;
-    }
-    outputFile.close();
 
-    std::ofstream outputFileEle("elementsVerticesIdxes.txt");
-    for(auto &e:Elements){
-        for(auto &i:e.globalVectorIdx){
-            outputFileEle<<i<<" ";
-        }
-        outputFileEle<<"\n";
-    }
-    outputFileEle.close();
 
 //    Eigen::VectorXd F(N);
     std::vector<double> F(N);
     for(auto &ele:Elements){
         std::vector<double> &Fm = ele.F_;
         std::vector<int> &glob = ele.globalVectorIdx;
-        for (int k=0;k<3;k++){
+        for (int k = 0; k < glob.size(); k++){
                 int i = glob[k];
                 if(vertices[i].isBorder){
                     F[i] = 0;
@@ -268,22 +295,28 @@ int main() {
         }
     }
 
-    for(int i = 0; i<row; i++){
-        if(i==0 || i==row-1){
-            for(int j=0;j<row;j++){
-                tripletListS.emplace_back(j*row  + i, j*row + i, 1.);
-            }
-        }else
-        {
-            tripletListS.emplace_back(i, i, 1.);
-            tripletListS.emplace_back(row*(row - 1) + i, row*(row - 1) + i, 1.);
-        }
-    }
+    Eigen::VectorXd EF(N);
+    for(int i = 0; i<row*row; i++) EF[i] = F[i];
+
+
+
+//    for(int i = 0; i<row; i++){
+//        if(i==0 || i==row-1){
+//            for(int j=0;j<row;j++){
+//                tripletListS.emplace_back(j*row  + i, j*row + i, 1.);
+//            }
+//        }else
+//        {
+//            tripletListS.emplace_back(i, i, 1.);
+//            tripletListS.emplace_back(row*(row - 1) + i, row*(row - 1) + i, 1.);
+//        }
+//    }
+
 //    F[(row*row)/2] = 1;// F[(row*row)/2 - row] = 1; F[(row*row)/2 + row] = 1;
 //    F[(row*row)/2 + 1] = 1; F[(row*row)/2 - row + 1] = 1; F[(row*row)/2 + row + 1] = 1;
 //    F[(row*row)/2 - 1] = 1; F[(row*row)/2 - row- 1] = 1; F[(row*row)/2 + row- 1] = 1;
 
-    bool debug = false;
+    bool debug = true;
     if(debug){
         std::vector< std::vector<double> > St (N, std::vector<double>(N));
 
@@ -296,9 +329,9 @@ int main() {
         fileS = fopen("resultS.txt","w");
         fileF = fopen("resultF.txt","w");
 
-        for(int i = 0; i<row*row; i++){
+        for(int i = 0; i< N; i++){
             fprintf(fileF,"%g\n", F[i]);
-            for(int j = 0; j<row*row; j++)
+            for(int j = 0; j<N; j++)
                 fprintf(fileS,"%.2f\t", St[i][j]);
             fprintf(fileS,"\n");
         }
@@ -306,9 +339,7 @@ int main() {
         fclose(fileF);
     }
 
-    Eigen::VectorXd EF(N);
-    for(int i = 0; i<row*row; i++)
-        EF[i] = F[i];
+
 
     std::cout<<"SparseMatrix CREATION BEGIN"<<std::endl;
     Eigen::SparseMatrix<double> S(N, N);
