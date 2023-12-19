@@ -14,9 +14,17 @@
 #include "Vertex2D.hpp"
 
 namespace fem{
-    double phi0(double &zeta, double &eta);
-    double phi1(double &zeta, double &eta);
-    double phi2(double &zeta, double &eta);
+    double lin_phi0(double &zeta, double &eta);
+    double lin_phi1(double &zeta, double &eta);
+    double lin_phi2(double &zeta, double &eta);
+
+    double quad_phi0(double &zeta, double &eta);
+    double quad_phi1(double &zeta, double &eta);
+    double quad_phi2(double &zeta, double &eta);
+    double quad_phi3(double &zeta, double &eta);
+    double quad_phi4(double &zeta, double &eta);
+    double quad_phi5(double &zeta, double &eta);
+
     double rho(double x, double y);
 
     double diffQuotient_x(const std::function<double(double&, double&)> &phi, double &x, double &y);
@@ -35,14 +43,14 @@ namespace fem{
     public:
             int m_;
             double k_;
-            std::vector<int> globalVectorIdx{};
-            const std::vector<Vertex2D> *vertices_;
+            std::vector<int> &globalVectorIdx;
+            std::vector<Vertex2D> *vertices_;
             std::vector<std::vector<double>> E_;
             std::vector<double> F_;
             std::vector<double> jacob_;
-            std::vector<std::function<double(double&, double&)>> linearBaseFunc {&phi0, &phi1, &phi2};
+            std::vector<std::function<double(double&, double&)>> linearBaseFunc {&lin_phi0, &lin_phi1, &lin_phi2};
 
-            TriangleElement(int m, std::vector<Vertex2D> &ver, std::initializer_list<int> globIndx, double k = 1);
+            TriangleElement(int m, std::vector<Vertex2D> &ver, std::vector<int> &globIndx, double k = 1);
     };
 }
 

@@ -3,11 +3,15 @@
 #include <vector>
 #include <fstream>
 #include <cstdio>
+#include <set>
+#include <unordered_set>
+#include <functional>
 #include <initializer_list>
 
 #include "Elements/TriangleElement.hpp"
 #include "Elements/Vertex2D.hpp"
 #include "FortunesAlgo/Fortunes.hpp"
+
 
 #include <eigen3/Eigen/SparseCholesky>
 #include <eigen3/Eigen/SparseLU>
@@ -79,7 +83,7 @@ bool isBorder(int k, int row){
 
         }else
         {
-            if(k == i || k == row*(row - 1) + i) return true;
+//            if(k == i || k == row*(row - 1) + i) return true;
         }
     }
 
@@ -100,10 +104,40 @@ void pointsRot(std::vector<Point2D> &points, double ang){
 
 }
 
+struct segment{
+    int i1_, i2_, i3_;
+
+    segment(int i1, int i2, int i3 = 0): i3_{i3}{
+        if(i1 < i2 ){
+            i1_ = i1;
+            i2_ = i2;
+        }else{
+            i1_ = i2;
+            i2_ = i1;
+        }
+    }
+};
+
+struct comppair{
+    constexpr bool operator()(const segment &p1, const segment &p2) const{
+        return (p1.i1_ == p2.i1_  && p1.i2_  == p2.i2_);
+    }
+};
+struct SegmentHash {
+    std::size_t operator () (const segment& p) const {
+        auto h1 = std::hash<int>{}(p.i1_);
+        auto h2 = std::hash<int>{}(p.i2_);
+//        auto h3 = std::hash<T1>{}(p[2]);
+
+        // A simple combination hash function
+        return h1 ^ h2;
+    }
+};
+
 int main() {
 
     double liczbafalowa = 10.465;
-    const int row = 101; //vertices number
+    const int row = 6; //vertices number
     double L = 2.4;
     //vertices number
 
@@ -118,22 +152,14 @@ int main() {
     for(int k =0; k<(row)*(row);k++){
         int i = k/(row);
         int j = k%(row);
-
 //        Point2D p(- L/2 + (horLen * i), - L/2 + (horLen * j ));
         points.emplace_back(- L/2 + (horLen * i), - L/2 + (horLen * j ));
         vertices.emplace_back(points[k], isBorder(k,row));
-
     }
 
     const size_t N = vertices.size();
 
 
-
-    std::ofstream outputFile("vertices.txt");
-    for(auto & vertex : vertices){
-        outputFile <<vertex.x() << ' ' << vertex.y() <<  ' ' << vertex.isBorder << std::endl;
-    }
-    outputFile.close();
 
     std::ofstream outputFilep("points.txt");
     for(auto & vertex : points){
@@ -148,8 +174,33 @@ int main() {
     pointsRot(points, 1);
     build(points, elementsIdx);
 
-    std::cout<<elementsIdx.size()<<std::endl;
+//    std::cout<<elementsIdx.size()<<std::endl;
 
+    {
+
+//TODO przechodzac po vectoerze indeksow elementu jako boki sprawdzamy czy element jest w secie jesli nie liczymy srodek tego boku dodajemy wierzcholek i indeksy tego boku do setu
+// set powinien miec indeks wierzcholka pierwszego, drugiego i utworzonego;
+
+        std::unordered_set<segment, SegmentHash, comppair> test_set;
+        for(auto &idxs:elementsIdx){
+            for(int i=0;i<3;i++){
+                if (auto iter = test_set.find({idxs[i],idxs[(i+1)%3]}); iter != test_set.end()){
+                    idxs.push_back(iter->i3_);
+                }else{
+
+                    Point2D v((vertices[idxs[i]].x() + vertices[idxs[(i+1)%3]].x())/2, (vertices[idxs[i]].y() + vertices[idxs[(i+1)%3]].y())/2);
+                    vertices.push_back({v, vertices[idxs[i]].isBorder && vertices[idxs[(i+1)%3]].isBorder});
+                    int i3 = static_cast<int>(vertices.size() - 1);
+                    test_set.insert({idxs[i],idxs[(i+1)%3],i3});
+                    idxs.push_back(i3);
+                }
+            }
+        }
+        for (const auto& element : test_set) {
+            std::cout << element.i1_ << " " << element.i2_ << " " << element.i3_ << std::endl;
+        }
+
+    }
 
     const size_t nEle = (row - 1) * (row - 1) * 2;
     std::cout<<nEle<<std::endl;
@@ -159,7 +210,7 @@ int main() {
     std::cout<<"Elements CREATION BEGIN"<<std::endl;
 
     for(auto &idxs:elementsIdx){
-        Elements.emplace_back(0, vertices, std::initializer_list<int>{idxs[0],idxs[1],idxs[2]}, liczbafalowa);
+        Elements.emplace_back(0, vertices, idxs, liczbafalowa);
     }
     std::cout<<"Elements CREATION END"<<std::endl<<std::endl;
 
@@ -187,9 +238,18 @@ int main() {
     }
     std::cout<<"Triplets CREATION END"<<std::endl<<std::endl;
 
+    std::ofstream outputFile("vertices.txt");
+    for(auto & vertex : vertices){
+        outputFile <<vertex.x() << ' ' << vertex.y() <<  ' ' << vertex.isBorder << std::endl;
+    }
+    outputFile.close();
+
     std::ofstream outputFileEle("elementsVerticesIdxes.txt");
     for(auto &e:Elements){
-        outputFileEle<<e.globalVectorIdx[0]<<" "<<e.globalVectorIdx[1]<<" "<<e.globalVectorIdx[2]<<"\n";
+        for(auto &i:e.globalVectorIdx){
+            outputFileEle<<i<<" ";
+        }
+        outputFileEle<<"\n";
     }
     outputFileEle.close();
 

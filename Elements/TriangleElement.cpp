@@ -14,13 +14,19 @@ namespace fem {
 
 
     TriangleElement::TriangleElement(int m, std::vector<Vertex2D> &ver,
-                                     std::initializer_list<int> globIndx,
+                                     std::vector<int> &globIndx,
                                      double k) : m_{m}, vertices_{&ver}, globalVectorIdx{globIndx}, k_{k} {
         F_ = std::vector<double>(3);
         E_ = std::vector<std::vector<double>>(3, std::vector<double>(3));
         initJacob();
         initE();
         initF();
+
+//        double x,y, x_ = 0, y_=0;
+//        Point2D p(map_x( x_, y_),map_y( x_, y_));
+//
+//        vertices_->push_back(Vertex2D(p));
+//        globalVectorIdx.push_back(vertices_->size() - 1);
     }
 
     void TriangleElement::initE() {
@@ -119,15 +125,15 @@ namespace fem {
         }
     }
 
-    double phi0(double &zeta, double &eta) {
+    double lin_phi0(double &zeta, double &eta) {
         return -.5 * (zeta + eta);
     }
 
-    double phi1(double &zeta, double &eta) {
+    double lin_phi1(double &zeta, double &eta) {
         return .5 * (1 + zeta);
     }
 
-    double phi2(double &zeta, double &eta) {
+    double lin_phi2(double &zeta, double &eta) {
         return .5 * (1 + eta);
     }
 
@@ -149,4 +155,32 @@ namespace fem {
         double y2 = y - delta;
         return (phi(x, y1) - phi(x, y2)) / (2 * delta);
     }
+
+    double quad_phi0(double &zeta, double &eta) {
+        double L = lin_phi0(zeta, eta);
+        return  L * (2. * L - 1);
+    }
+
+    double quad_phi1(double &zeta, double &eta) {
+        double L = lin_phi1(zeta, eta);
+        return  L * (2. * L - 1);
+    }
+
+    double quad_phi2(double &zeta, double &eta) {
+        double L = lin_phi2(zeta, eta);
+        return  L * (2. * L - 1);
+    }
+
+    double quad_phi3(double &zeta, double &eta) {
+        return  .5 * quad_phi1(zeta, eta)*quad_phi2(zeta, eta);
+    }
+
+    double quad_phi4(double &zeta, double &eta) {
+        return  .5 * quad_phi0(zeta, eta)*quad_phi2(zeta, eta);
+    }
+
+    double quad_phi5(double &zeta, double &eta) {
+        return  .5 * quad_phi0(zeta, eta)*quad_phi1(zeta, eta);
+    }
+
 }
