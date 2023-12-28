@@ -15,7 +15,7 @@ struct Event {
     enum { SITE = 0, CIRCLE = 1, SKIP = 2, };
 
     int type;
-    Point2D point;
+    Vertex2D point;
 
     /*
      Site event attributes:
@@ -26,11 +26,11 @@ struct Event {
     /*
      Circle event attributes:
      */
-    Point2D center;
+    Vertex2D center;
     bl::BLNodePtr arc;
 
 
-    Event(int _index = -1, int _type = Event::SKIP, const Point2D &_point = Point2D(0.0, 0.0));
+    Event(int _index = -1, int _type = Event::SKIP, const Vertex2D &_point = Vertex2D(0.0, 0.0));
 
 };
 
@@ -39,13 +39,13 @@ typedef std::shared_ptr<Event> EventPtr;
 
 
 struct Point2DComparator {
-    bool operator()(const Point2D &p1, const Point2D &p2) {
+    bool operator()(const Vertex2D &p1, const Vertex2D &p2) {
         return (p1.y == p2.y && p1.x > p2.x) || p1.y > p2.y;
     }
 };
 
 struct Point2DComparator2 {
-    bool operator()(const Point2D &p1, const Point2D &p2) {
+    bool operator()(const Vertex2D &p1, const Vertex2D &p2) {
         return (p1.y == p2.y && p1.x < p2.x) || p1.y < p2.y;
     }
 };
@@ -60,6 +60,6 @@ struct EventPtrComparator {
 
 
 EventPtr checkCircleEvent(bl::BLNodePtr n1, bl::BLNodePtr n2, bl::BLNodePtr n3,
-                          const std::vector<Point2D> &points, double sweepline) ;
+                          const std::vector<Vertex2D> &points, double sweepline) ;
 
 #endif //MES_EVENT_HPP

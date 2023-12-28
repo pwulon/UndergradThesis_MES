@@ -9,7 +9,7 @@
  Calculate number of intersection points between two parabolas with foci `f1` and `f2` and with given `directrix`
 
  */
-int intersectionPointsNum(const Point2D &f1, const Point2D &f2, double directrix) {
+int intersectionPointsNum(const Vertex2D &f1, const Vertex2D &f2, double directrix) {
     if (fabs(f1.x - f2.x) < POINT_EPSILON && fabs(f1.y - f2.y) < POINT_EPSILON) {
         return -1;
     }
@@ -25,15 +25,15 @@ int intersectionPointsNum(const Point2D &f1, const Point2D &f2, double directrix
  Returns  intersection points ordered by x-coordinate
 
  */
-std::vector<Point2D> findIntersectionPoints(const Point2D &f1, const Point2D &f2, double d) {
-    std::vector<Point2D> result;
+std::vector<Vertex2D> findIntersectionPoints(const Vertex2D &f1, const Vertex2D &f2, double d) {
+    std::vector<Vertex2D> result;
     if (fabs(f1.x - f2.x) < POINT_EPSILON) {
         double y = 0.5 * (f1.y + f2.y), D = sqrt(d * d - d * (f1.y + f2.y) + f1.y * f2.y);
-        result.push_back(Point2D(f1.x - D, y));
-        result.push_back(Point2D(f1.x + D, y));
+        result.push_back(Vertex2D(f1.x - D, y));
+        result.push_back(Vertex2D(f1.x + D, y));
     } else if (fabs(f1.y - f2.y) < POINT_EPSILON) {
         double x = 0.5 * (f1.x + f2.x);
-        result.push_back(Point2D(x, 0.5 * ((x - f1.x) * (x - f1.x) + f1.y * f1.y  - d * d) / (f1.y - d)));
+        result.push_back(Vertex2D(x, 0.5 * ((x - f1.x) * (x - f1.x) + f1.y * f1.y - d * d) / (f1.y - d)));
     } else {
 
         double D = 2. * sqrt(pow(f1.x - f2.x, 2) * (d - f1.y) * (d - f2.y) * (pow(f1.x - f2.x, 2) + pow(f1.y - f2.y, 2)));
@@ -48,8 +48,8 @@ std::vector<Point2D> findIntersectionPoints(const Point2D &f1, const Point2D &f2
             std::swap(x1, x2);
             std::swap(y1, y2);
         }
-        result.push_back(Point2D(x1, y1));
-        result.push_back(Point2D(x2, y2));
+        result.push_back(Vertex2D(x1, y1));
+        result.push_back(Vertex2D(x2, y2));
     }
     return result;
 }

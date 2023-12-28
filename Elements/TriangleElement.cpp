@@ -18,38 +18,36 @@ namespace fem {
 
     TriangleElement::TriangleElement(int m, std::vector<Vertex2D> &ver,
                                      std::vector<int> &globIndx,
-                                     double k, type t) : m_{m}, vertices_{&ver}, globalVectorIdx{globIndx}, k_{k} {
-        if(type(t) == 1){
-//            std::cout<<"lin"<<std::endl;
-            linearBaseFunc  = {&lin_phi0, &lin_phi1, &lin_phi2};
-        } else if(type(t) == 2){
-//            std::cout<<"quad"<<std::endl;
-            linearBaseFunc = {&quad_phi0, &quad_phi1, &quad_phi2, &quad_phi3, &quad_phi4, &quad_phi5};
+                                     double k, elementType et, baseFuncType bft ) : m_{m}, vertices_{&ver}, globalVectorIdx{globIndx}, k_{k} {
+
+        switch (bft) {
+            case LIN:
+                baseFunc  = {&lin_phi0, &lin_phi1, &lin_phi2};
+                break;
+            case QUAD:
+                baseFunc = {&quad_phi0, &quad_phi1, &quad_phi2, &quad_phi3, &quad_phi4, &quad_phi5};
+                break;
         }
-        F_ = std::vector<double>(linearBaseFunc.size());
-        E_ = std::vector<std::vector<double>>(linearBaseFunc.size(), std::vector<double>(linearBaseFunc.size()));
+
+        F_ = std::vector<double>(baseFunc.size());
+        E_ = std::vector<std::vector<std::complex<double>>>(baseFunc.size(), std::vector<std::complex<double>>(baseFunc.size()));
+
         initJacob();
         initE();
         initF();
-
-//        double x,y, x_ = 0, y_=0;
-//        Point2D p(map_x( x_, y_),map_y( x_, y_));
-//
-//        vertices_->push_back(Vertex2D(p));
-//        globalVectorIdx.push_back(vertices_->size() - 1);
     }
 
     void TriangleElement::initE() {
-        for (int i = 0; i < linearBaseFunc.size(); i++) {
-            for (int j = 0; j < linearBaseFunc.size(); j++) {
+        for (int i = 0; i < baseFunc.size(); i++) {
+            for (int j = 0; j < baseFunc.size(); j++) {
                 for (int k = 0; k < 7; k++) {
                     std::pair<double, double> nablaphi_i = nablaPhik(xgaus[k], ygaus[k], jacob_[k], i);
                     std::pair<double, double> nablaphi_j = nablaPhik(xgaus[k], ygaus[k], jacob_[k], j);
                     E_[i][j] += wgaus[k] * jacob_[k] * (
                             -(nablaphi_i.first * nablaphi_j.first +
                             nablaphi_i.second * nablaphi_j.second) +
-                                pow(k_, 2) *
-                               linearBaseFunc[i](fem::xgaus[k], fem::ygaus[k]) * linearBaseFunc[j](fem::xgaus[k], fem::ygaus[k]));
+                            pow(k_, 2) * getRefIdx() *
+                            baseFunc[i](fem::xgaus[k], fem::ygaus[k]) * baseFunc[j](fem::xgaus[k], fem::ygaus[k]));
                 }
 //                if (m_ < 2)std::cout << E_[i][j] << "\t"; //debug
             }
@@ -59,11 +57,11 @@ namespace fem {
     }
 
     void TriangleElement::initF() {
-        for (int j = 0; j <  linearBaseFunc.size(); j++) {
+        for (int j = 0; j < baseFunc.size(); j++) {
             if(!globalVector(j).isBorder){
                 for (int k = 0; k < 7; k++) {
                     F_[j] += wgaus[k] * jacob_[k] *
-                             linearBaseFunc[j](xgaus[k], ygaus[k]) *
+                             baseFunc[j](xgaus[k], ygaus[k]) *
                              rho(map_x(xgaus[k], ygaus[k]), map_y(xgaus[k], ygaus[k]));
                 }
             }else{
@@ -83,24 +81,24 @@ namespace fem {
     }
 
     std::pair<double, double> TriangleElement::nablaPhik(double &zeta, double &eta, double &jacob, int &k) {
-        return {diffQuotient_x(linearBaseFunc[k], zeta, eta) * map_y(zeta, eta,2) / jacob
-                - diffQuotient_y(linearBaseFunc[k], zeta, eta) * map_y(zeta, eta,1) / jacob,
-                -diffQuotient_x(linearBaseFunc[k], zeta, eta) * map_x(zeta, eta,2) / jacob
-                + diffQuotient_y(linearBaseFunc[k], zeta, eta) * map_x(zeta, eta, 1) / jacob};
+        return {diffQuotient_x(baseFunc[k], zeta, eta) * map_y(zeta, eta, 2) / jacob
+                - diffQuotient_y(baseFunc[k], zeta, eta) * map_y(zeta, eta, 1) / jacob,
+                -diffQuotient_x(baseFunc[k], zeta, eta) * map_x(zeta, eta, 2) / jacob
+                + diffQuotient_y(baseFunc[k], zeta, eta) * map_x(zeta, eta, 1) / jacob};
     }
 
     double TriangleElement::map_x(double &zeta, double &eta, int diffFlag) {
         double sum = 0;
-        for (int i = 0; i < linearBaseFunc.size(); i++) {
+        for (int i = 0; i < baseFunc.size(); i++) {
             switch (diffFlag) {
                 case 0:
-                    sum += globalVector(i).x() * linearBaseFunc[i](zeta, eta);
+                    sum += globalVector(i).x * baseFunc[i](zeta, eta);
                     break;
                 case 1:
-                    sum += globalVector(i).x() * diffQuotient_x(linearBaseFunc[i],zeta,eta);
+                    sum += globalVector(i).x * diffQuotient_x(baseFunc[i], zeta, eta);
                     break;
                 case 2:
-                    sum += globalVector(i).x() * diffQuotient_y(linearBaseFunc[i],zeta,eta);
+                    sum += globalVector(i).x * diffQuotient_y(baseFunc[i], zeta, eta);
                     break;
             }
         }
@@ -109,16 +107,16 @@ namespace fem {
 
     double TriangleElement::map_y(double &zeta, double &eta, int diffFlag) {
         double sum = 0;
-        for (int i = 0; i < linearBaseFunc.size(); i++) {
+        for (int i = 0; i < baseFunc.size(); i++) {
             switch (diffFlag) {
                 case 0:
-                    sum += globalVector(i).y() * linearBaseFunc[i](zeta, eta);
+                    sum += globalVector(i).y * baseFunc[i](zeta, eta);
                     break;
                 case 1:
-                    sum += globalVector(i).y() * diffQuotient_x(linearBaseFunc[i], zeta, eta);
+                    sum += globalVector(i).y * diffQuotient_x(baseFunc[i], zeta, eta);
                     break;
                 case 2:
-                    sum += globalVector(i).y() * diffQuotient_y(linearBaseFunc[i], zeta, eta);
+                    sum += globalVector(i).y * diffQuotient_y(baseFunc[i], zeta, eta);
                     break;
             }
         }
@@ -133,6 +131,16 @@ namespace fem {
         for(int k = 0; k<7; k++){
             jacob_.push_back(Jacobian(fem::xgaus[k],fem::ygaus[k]));
         }
+    }
+
+    std::complex<double> TriangleElement::getRefIdx() {
+        switch (n_) {
+            case AIR:
+                return air;
+            case BRICK:
+                return brick;
+        }
+        return std::complex<double>(1. , 0.);
     }
 
     double lin_phi0(double &zeta, double &eta) {

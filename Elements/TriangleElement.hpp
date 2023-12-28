@@ -10,13 +10,19 @@
 #include <functional>
 #include <initializer_list>
 #include <cmath>
+#include <complex>
 
 #include "Vertex2D.hpp"
 
 namespace fem{
-    enum type{
+    enum baseFuncType{
         LIN = 1, QUAD = 2
     };
+
+    enum elementType{
+        AIR, BRICK
+    };
+
 
     double lin_phi0(double &zeta, double &eta);
     double lin_phi1(double &zeta, double &eta);
@@ -36,9 +42,13 @@ namespace fem{
 
     class TriangleElement {
         private:
+            static constexpr std::complex<double> air {1,0};
+            static constexpr std::complex<double> brick {1.81934,1.55255e-09};
+
             void initE();
             void initF();
             void initJacob();
+            std::complex<double> getRefIdx();
             double Jacobian(double &zeta, double &eta);
             double map_x(double &zeta, double &eta, int diffFlag = 0);
             double map_y(double &zeta, double &eta, int diffFlag = 0);
@@ -46,15 +56,16 @@ namespace fem{
             Vertex2D globalVector(int &i);
     public:
             int m_;
+            elementType n_;
             double k_;
             std::vector<int> &globalVectorIdx;
             std::vector<Vertex2D> *vertices_;
-            std::vector<std::vector<double>> E_;
+            std::vector<std::vector<std::complex<double>>> E_;
             std::vector<double> F_;
             std::vector<double> jacob_;
-            std::vector<std::function<double(double&, double&)>> linearBaseFunc;
+            std::vector<std::function<double(double&, double&)>> baseFunc;
 
-            TriangleElement(int m, std::vector<Vertex2D> &ver, std::vector<int> &globIndx, double k = 1, type t = LIN);
+            TriangleElement(int m, std::vector<Vertex2D> &ver, std::vector<int> &globIndx, double k = 1, elementType et = AIR, baseFuncType bft = LIN);
     };
 }
 

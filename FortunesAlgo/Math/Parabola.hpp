@@ -5,13 +5,13 @@
 #ifndef MES_PARABOLA_HPP
 #define MES_PARABOLA_HPP
 
-#include "../../Elements/Point2D.hpp"
+#include "../../Elements/Vertex2D.hpp"
 /**
 
  Calculate number of intersection points between two parabolas with foci `f1` and `f2` and with given `directrix`
 
  */
-int intersectionPointsNum(const Point2D &f1, const Point2D &f2, double directrix);
+int intersectionPointsNum(const Vertex2D &f1, const Vertex2D &f2, double directrix);
 
 
 /**
@@ -19,7 +19,7 @@ int intersectionPointsNum(const Point2D &f1, const Point2D &f2, double directrix
  Find intersection points of two parabolas with foci `f1` and `f2` and with given `directrix`
 
  */
-std::vector<Point2D> findIntersectionPoints(const Point2D &f1, const Point2D &f2, double directrix);
+std::vector<Vertex2D> findIntersectionPoints(const Vertex2D &f1, const Vertex2D &f2, double directrix);
 
 
 

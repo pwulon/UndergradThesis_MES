@@ -10,7 +10,7 @@ namespace beachline {
 
     BLNode::BLNode(const std::pair<int,int>& _indices,
                    double* _sweepline ,
-                   const std::vector<Point2D>* _points,
+                   const std::vector<Vertex2D>* _points,
                    BLNodePtr _left,
                    BLNodePtr _right,
                    BLNodePtr _parent,
@@ -26,9 +26,9 @@ namespace beachline {
         if (is_leaf()) {
             return (*points)[indices.first].x;
         } else {
-            Point2D p1 = (*points)[indices.first], p2 = (*points)[indices.second];
+            Vertex2D p1 = (*points)[indices.first], p2 = (*points)[indices.second];
 
-            std::vector<Point2D> ips = findIntersectionPoints(p1, p2, *sweepline);
+            std::vector<Vertex2D> ips = findIntersectionPoints(p1, p2, *sweepline);
             if (ips.size() == 2) {
                 if (p1.y < p2.y) {
                     return ips[0].x;
@@ -382,7 +382,7 @@ namespace beachline {
 
 
     BLNodePtr make_subtree(int index, int index_behind, double *sweepline,
-                           const std::vector<Point2D> *points
+                           const std::vector<Vertex2D> *points
     ) {
 
         // create nodes corresponding to branching points
@@ -421,7 +421,7 @@ namespace beachline {
 
 
     BLNodePtr make_simple_subtree(int index, int index_behind, double *sweepline,
-                                  const std::vector<Point2D> *points
+                                  const std::vector<Vertex2D> *points
     ) {
 
         BLNodePtr node, leaf_l, leaf_r;

@@ -7,7 +7,7 @@
 #define BREAKPOINTS_EPSILON 1.0e-5
 
 
-double calculateSlope(const Point2D &p1, const Point2D &p2) {
+double calculateSlope(const Vertex2D &p1, const Vertex2D &p2) {
     // Check if the line is vertical to avoid division by zero
     if (fabs(p1.x - p2.x) < 1e-6) {
         return std::numeric_limits<double>::infinity(); // Vertical line
@@ -17,7 +17,7 @@ double calculateSlope(const Point2D &p1, const Point2D &p2) {
     return (p2.y - p1.y) / (p2.x - p1.x);
 }
 
-bool arePointsCollinear(const std::vector<int> &idx, const std::vector<Point2D> &points) {
+bool arePointsCollinear(const std::vector<int> &idx, const std::vector<Vertex2D> &points) {
     // Calculate slopes of two lines formed by pairs of points
 //    std::cout<<idx[0]<<" "<<idx[1]<<" "<<idx[2]<<std::endl;
     double slope1 = calculateSlope(points[idx[0]], points[idx[1]]);
@@ -30,8 +30,24 @@ bool arePointsCollinear(const std::vector<int> &idx, const std::vector<Point2D> 
     return fabs(slope1 - slope2) < 0.1;
 }
 
-void build(const std::vector<Point2D> &points,
-                   std::vector<std::vector<int>> &elements) {
+void pointsRot(std::vector<Vertex2D> &points, double ang){
+    double alfa = ang*M_PI/180.;
+    double sin1 = sin(alfa);
+    double cos1 = cos(alfa);
+
+    for (int i = 0; i < points.size(); i++) {
+        double x = points[i].x*cos1 - points[i].y*sin1;
+        double y = points[i].x*sin1 + points[i].y*cos1;
+        points[i].x = x;
+        points[i].y = y;
+    }
+}
+
+void build(std::vector<Vertex2D> &points,
+                   std::vector<std::vector<int>> &elements,  bool withPointRot) {
+
+    // rotate points to doge edge case when too many points are in a straight line
+    if(withPointRot)    pointsRot(points, 1);
 
     // create a priority queue
     std::priority_queue<EventPtr, std::vector<EventPtr>, EventPtrComparator> pq;
@@ -125,7 +141,7 @@ void build(const std::vector<Point2D> &points,
             }
 
             // create a new vertex and insert into doubly-connected edge list
-            Point2D voronoiVertex = e->center;
+            Vertex2D voronoiVertex = e->center;
 
             // store vertex of Voronoi diagram
 //            if (!(vertex->x() > -3.88889 && vertex->x() <  3.88889 &&  vertex->y() > -3.88889 && vertex->y() <  3.88889))
@@ -176,5 +192,5 @@ void build(const std::vector<Point2D> &points,
             }
         }
     }
-
+    if(withPointRot)  pointsRot(points, -1);
 }

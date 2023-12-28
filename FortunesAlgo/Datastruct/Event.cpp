@@ -4,21 +4,21 @@
 
 #include "Event.hpp"
 
-Event::Event(int _index, int _type, const Point2D &_point) :
+Event::Event(int _index, int _type, const Vertex2D &_point) :
         index(_index), type(_type), point(_point), arc(nullptr) {}
 
 
 EventPtr checkCircleEvent(bl::BLNodePtr n1, bl::BLNodePtr n2, bl::BLNodePtr n3,
-                          const std::vector<Point2D> &points, double sweepline) {
+                          const std::vector<Vertex2D> &points, double sweepline) {
 
     if (n1 == nullptr || n2 == nullptr || n3 == nullptr)
         return nullptr;
 
 
-    Point2D p1 = points[n1->get_id()];
-    Point2D p2 = points[n2->get_id()];
-    Point2D p3 = points[n3->get_id()];
-    Point2D center, bottom;
+    Vertex2D p1 = points[n1->get_id()];
+    Vertex2D p2 = points[n2->get_id()];
+    Vertex2D p3 = points[n3->get_id()];
+    Vertex2D center, bottom;
 
     if (p2.y > p1.y && p2.y > p3.y)
         return nullptr;
