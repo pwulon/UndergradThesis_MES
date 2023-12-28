@@ -18,4 +18,6 @@ add_executable(MES main.cpp
         FortunesAlgo/Fortunes.hpp
         Elements/Vertex2D.hpp
         FortunesAlgo/Datastruct/Event.cpp
-        FortunesAlgo/Datastruct/Event.hpp)
+        FortunesAlgo/Datastruct/Event.hpp
+        Elements/Wall.cpp
+        Elements/Wall.hpp)

@@ -10,6 +10,7 @@
 
 #include "Elements/TriangleElement.hpp"
 #include "Elements/Vertex2D.hpp"
+#include "Elements/Wall.hpp"
 #include "FortunesAlgo/Fortunes.hpp"
 
 
@@ -17,63 +18,6 @@
 #include <eigen3/Eigen/SparseLU>
 
 
-//double rho(double x, double y){
-////    if (x>-1e-1 && x<1e-1 && y>-1e-1 && y<1e-1)
-////        return 1.;
-//    return 1;
-//}
-
-//class TriEle {
-//private:
-//
-//    double zeta(double x, double y){
-//        double x1 = origVer[0].first;
-//        double y1 = origVer[0].second;
-//        double x2 = origVer[1].first;
-//        double y2 = origVer[1].second;
-//        double x3 = origVer[2].first;
-//        double y3 = origVer[2].second;
-//
-//        return (2*x1*y-x1*y2-x1*y3+y1*x2+y2*x3+y1*x3-2*y1*x-2*x3*y+2*x*y3-x2*y3)/(-x1*y3-y1*x2+x2*y3+y1*x3+x1*y2-y2*x3);
-//    }
-//
-//    double eta(double x, double y){
-//        double x1 = origVer[0].first;
-//        double y1 = origVer[0].second;
-//        double x2 = origVer[1].first;
-//        double y2 = origVer[1].second;
-//        double x3 = origVer[2].first;
-//        double y3 = origVer[2].second;
-//
-//        return -1/(-x1*y3-y1*x2+x2*y3+y1*x3+x1*y2-y2*x3)*(2*x1*y-x1*y2-x1*y3+y1*x3-2*x2*y+x2*y3-y2*x3-2*y1*x+y1*x2+2*y2*x);
-//    }
-//    double St(double x1,double x2,double x3,double y1, double y2, double y3){
-//        return fabs(-x1*(y3-y2)+x2*y3-x3*y2+(x3-x2)*y1 )*0.5;
-//    }
-//public:
-//    bool ismember(double x, double y){
-//        double x1 = origVer[0].first;
-//        double y1 = origVer[0].second;
-//        double x2 = origVer[1].first;
-//        double y2 = origVer[1].second;
-//        double x3 = origVer[2].first;
-//        double y3 = origVer[2].second;
-//
-//        double s1 = St(x1,x2,x3,y1,y2,y3);
-//        double s2 = St(x,x2,x3,y,y2,y3);
-//        double s3 = St(x1,x,x3,y1,y,y3);
-//        double s4 = St(x1,x2,x,y1,y2,y);
-//
-//        return fabs(-s1 + s2 + s3 + s4) < 1e-3;
-//    }
-//    double u_m(double x, double y, Eigen::VectorXd &c){
-//        double u = 0;
-//        for(int i=0; i<3; i++){
-//            u+= c[localLabel[i]]*phi_k[i](this->zeta(x, y),this->eta(x,y));
-//        }
-//        return u;
-//    }
-//};
 
 bool isBorder(int k, int row){
     for(int i = 0; i<row; i++){
@@ -123,6 +67,7 @@ struct comppair{
         return (p1.i1_ == p2.i1_  && p1.i2_  == p2.i2_);
     }
 };
+
 struct SegmentHash {
     std::size_t operator () (const segment& p) const {
         auto h1 = std::hash<int>{}(p.i1_);
@@ -136,7 +81,7 @@ struct SegmentHash {
 
 int main() {
 
-    double liczbafalowa = 10.465;
+    double liczbafalowa = 9;
     const int row = 5; //vertices number
     double L = 2.4;
     //vertices number
@@ -157,7 +102,14 @@ int main() {
         vertices.emplace_back(points[k], isBorder(k,row));
     }
 
-
+    Point2D a(- L/2,- L/2), b(L/2,L/2), aa(.001,.001);
+    int count=0;
+    Wall w(a,b);
+    for(auto &p: points )
+    if(w.isInsideWall(p)){
+        count++;
+    }
+    std::cout<<count<<std::endl;
 
 
     std::ofstream outputFilep("points.txt");
@@ -170,12 +122,14 @@ int main() {
 
     std::vector<std::vector<int>> elementsIdx;
 
-    pointsRot(points, 1);
+//    pointsRot(points, 1);
+//    points[0].y -= 0.1;
     build(points, elementsIdx);
+
 
 //    std::cout<<elementsIdx.size()<<std::endl;
 
-    if(1){
+    if(0){
 
 //TODO przechodzac po vectoerze indeksow elementu jako boki sprawdzamy czy element jest w secie jesli nie liczymy srodek tego boku dodajemy wierzcholek i indeksy tego boku do setu
 // set powinien miec indeks wierzcholka pierwszego, drugiego i utworzonego;
@@ -223,7 +177,7 @@ int main() {
     std::cout<<"Elements CREATION BEGIN"<<std::endl;
 
     for(auto &idxs:elementsIdx){
-        Elements.emplace_back(0, vertices, idxs, liczbafalowa, fem::QUAD);
+        Elements.emplace_back(0, vertices, idxs, liczbafalowa, fem::LIN);
     }
     std::cout<<"Elements CREATION END"<<std::endl<<std::endl;
 

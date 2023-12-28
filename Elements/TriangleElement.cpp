@@ -20,10 +20,10 @@ namespace fem {
                                      std::vector<int> &globIndx,
                                      double k, type t) : m_{m}, vertices_{&ver}, globalVectorIdx{globIndx}, k_{k} {
         if(type(t) == 1){
-            std::cout<<"lin"<<std::endl;
+//            std::cout<<"lin"<<std::endl;
             linearBaseFunc  = {&lin_phi0, &lin_phi1, &lin_phi2};
         } else if(type(t) == 2){
-            std::cout<<"quad"<<std::endl;
+//            std::cout<<"quad"<<std::endl;
             linearBaseFunc = {&quad_phi0, &quad_phi1, &quad_phi2, &quad_phi3, &quad_phi4, &quad_phi5};
         }
         F_ = std::vector<double>(linearBaseFunc.size());
