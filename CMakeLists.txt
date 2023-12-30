@@ -3,7 +3,7 @@ project(MES)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_compile_options(-O3)
+add_compile_options(-O3 -fopenmp)
 
 add_executable(MES main.cpp
         Elements/TriangleElement.cpp
@@ -34,5 +34,5 @@ add_executable(MES main.cpp
 
 )
 
-target_link_libraries(MES glfw)
+target_link_libraries(MES glfw ${CMAKE_DL_LIBS})
 

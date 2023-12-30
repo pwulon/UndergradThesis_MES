@@ -6,13 +6,14 @@
 #define MES_WALL_HPP
 
 #include "Vertex2D.hpp"
+#include "TriangleElement.hpp"
 
 
 class Wall {
 public:
+    fem::elementType type;
     Vertex2D leftDownCorner, leftUpCorner, rightDownCorner, rightUpCorner;
-    Wall(Vertex2D ldc, Vertex2D luc, Vertex2D rdc, Vertex2D ruc);
-    Wall(Vertex2D &ldc, double w, double h);
+    Wall(double leftDownX, double leftDownY, double w, double h, fem::elementType elt);
     void rot(double ang);
     bool isInsideWall(double &x, double &y);
     bool isInsideWall(Vertex2D &p);

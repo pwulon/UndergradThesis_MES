@@ -22,7 +22,7 @@ double calculateSlope(const Vertex2D &p1, const Vertex2D &p2);
 void pointsRot(std::vector<Vertex2D> &points, double ang);
 
 void build(std::vector<Vertex2D> &points,
-           std::vector<std::vector<int>> &elementsWall, std::vector<std::vector<int>> &elementsAir,
+           std::vector<fem::ElementIndices> &elements,
            std::vector<Wall> walls, bool withPointRot = true);
 
 #endif //MES_FORTUNES_HPP

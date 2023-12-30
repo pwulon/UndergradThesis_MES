@@ -18,7 +18,7 @@ void saveScreenshot(const char* filename, GLFWwindow* window);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::TriangleElement> &Elements, std::vector<double> &c, double L);
+int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::TriangleElement> &Elements, std::vector<double> &c, double w, double h);
 
 
 #endif //MES_CREATEOPENGLWINDOW_HPP

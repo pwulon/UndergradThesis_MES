@@ -23,6 +23,13 @@ namespace fem{
         AIR, BRICK, CONCRETE
     };
 
+    class ElementIndices{
+    public:
+        elementType n;
+        std::vector<int> indices;
+        ElementIndices(std::vector<int> &_indices, elementType _n);
+    };
+
 
     double lin_phi0(double &zeta, double &eta);
     double lin_phi1(double &zeta, double &eta);
@@ -59,7 +66,7 @@ namespace fem{
             int m_;
             Vertex2D globalVector(int &i);
             elementType n_;
-            double k_;
+            static double k_;
             std::vector<int> &globalVectorIdx;
             std::vector<Vertex2D> *vertices_;
             std::vector<std::vector<std::complex<double>>> E_;
@@ -67,7 +74,7 @@ namespace fem{
             std::vector<double> jacob_;
             std::vector<std::function<double(double&, double&)>> baseFunc;
 
-            TriangleElement(int m, std::vector<Vertex2D> &ver, std::vector<int> &globIndx, double k = 1, elementType et = AIR, baseFuncType bft = LIN);
+            TriangleElement(int m, std::vector<Vertex2D> &ver, std::vector<int> &globIndx, elementType et = AIR, baseFuncType bft = LIN);
     };
 }
 

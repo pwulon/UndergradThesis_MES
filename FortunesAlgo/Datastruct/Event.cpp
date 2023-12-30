@@ -34,7 +34,7 @@ EventPtr checkCircleEvent(bl::BLNodePtr n1, bl::BLNodePtr n2, bl::BLNodePtr n3,
         // create a circle event structure
         EventPtr e = std::make_shared<Event>(-1, Event::CIRCLE, bottom);
         // initialize attributes
-        e->ids = {n1->get_id(), n2->get_id(), n3->get_id()};
+        e->vertexIindices = {n1->get_id(), n2->get_id(), n3->get_id()};
         e->center = center;
         e->arc = n2;
         // add reference in the corresponding node

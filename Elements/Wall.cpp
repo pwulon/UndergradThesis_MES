@@ -6,11 +6,12 @@
 
 
 
-Wall::Wall(Vertex2D ldc, Vertex2D luc, Vertex2D ruc,  Vertex2D rdc):
-        leftDownCorner{ldc}, leftUpCorner{luc}, rightDownCorner{rdc}, rightUpCorner(ruc){}
-
-Wall::Wall(Vertex2D &ldc, double w, double h):
-    leftDownCorner{ldc}, leftUpCorner{ldc.x, ldc.y + h}, rightUpCorner{ldc.x + w, ldc.y + h}, rightDownCorner(ldc.x + w, ldc.y){}
+Wall::Wall(double leftDownX, double leftDownY, double w, double h, fem::elementType elt):
+    leftDownCorner{leftDownX, leftDownY},
+    leftUpCorner{leftDownX, leftDownY + h},
+    rightUpCorner{leftDownX + w, leftDownY + h},
+    rightDownCorner(leftDownX + w, leftDownY),
+    type{elt}{}
 
 bool Wall::isInsideWall(double &x, double &y){
 

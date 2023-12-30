@@ -7,7 +7,9 @@
 
 namespace fem {
 
+    ElementIndices::ElementIndices(std::vector<int> &_indices, elementType _n):indices{_indices}, n{_n} {};
 
+    double TriangleElement::k_ = 1;
 
     std::vector<double> xgaus = {-0.3333333, -0.0597158717, -0.0597158717, -0.8805682564, -0.7974269853, -0.7974269853,
                                  0.5948539707};
@@ -17,8 +19,7 @@ namespace fem {
 
 
     TriangleElement::TriangleElement(int m, std::vector<Vertex2D> &ver,
-                                     std::vector<int> &globIndx,
-                                     double k, elementType et, baseFuncType bft ) : m_{m}, vertices_{&ver}, n_{et}, globalVectorIdx{globIndx}, k_{k} {
+                                     std::vector<int> &globIndx, elementType et, baseFuncType bft ) : m_{m}, vertices_{&ver}, n_{et}, globalVectorIdx{globIndx} {
 
         switch (bft) {
             case LIN:
@@ -46,7 +47,7 @@ namespace fem {
                     E_[i][j] += wgaus[k] * jacob_[k] * (
                             -(nablaphi_i.first * nablaphi_j.first +
                             nablaphi_i.second * nablaphi_j.second) +
-                            pow(k_, 2) * getRefIdx() *
+                            pow(k_, 2) * pow(getRefIdx(),2) *
                             baseFunc[i](fem::xgaus[k], fem::ygaus[k]) * baseFunc[j](fem::xgaus[k], fem::ygaus[k]));
                 }
 //                if (m_ < 2)std::cout << E_[i][j] << "\t"; //debug

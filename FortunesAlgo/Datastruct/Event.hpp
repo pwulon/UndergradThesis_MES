@@ -21,7 +21,7 @@ struct Event {
      Site event attributes:
      */
     int index;
-    std::vector<int> ids;
+    std::vector<int> vertexIindices;
 
     /*
      Circle event attributes:
