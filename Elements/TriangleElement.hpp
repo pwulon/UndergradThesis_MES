@@ -54,9 +54,10 @@ namespace fem{
             double map_x(double &zeta, double &eta, int diffFlag = 0);
             double map_y(double &zeta, double &eta, int diffFlag = 0);
             std::pair<double, double> nablaPhik(double &zeta, double &eta, double &jacob, int &k);
-            Vertex2D globalVector(int &i);
+
     public:
             int m_;
+            Vertex2D globalVector(int &i);
             elementType n_;
             double k_;
             std::vector<int> &globalVectorIdx;

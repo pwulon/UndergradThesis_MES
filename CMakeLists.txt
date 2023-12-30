@@ -3,6 +3,8 @@ project(MES)
 
 set(CMAKE_CXX_STANDARD 14)
 
+add_compile_options(-O3)
+
 add_executable(MES main.cpp
         Elements/TriangleElement.cpp
         Elements/TriangleElement.hpp
@@ -21,4 +23,16 @@ add_executable(MES main.cpp
         Elements/Wall.cpp
         Elements/Wall.hpp
         Elements/Section.cpp
-        Elements/Section.hpp)
+        Elements/Section.hpp
+        Visualization/glad/glad.h
+        Visualization/glad/glad.c
+        Visualization/glad/stb_image_write.h
+        Visualization/Shaders.hpp
+        Visualization/CreateOpenGlWindow.cpp
+        Visualization/CreateOpenGlWindow.hpp
+        Visualization/Shaders.cpp
+
+)
+
+target_link_libraries(MES glfw)
+

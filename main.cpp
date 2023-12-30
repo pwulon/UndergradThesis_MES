@@ -9,11 +9,29 @@
 #include "Elements/Wall.hpp"
 #include "FortunesAlgo/Fortunes.hpp"
 
+#include "Visualization/CreateOpenGlWindow.hpp"
 
-#include <eigen3/Eigen/SparseCholesky>
+
+//#include <eigen3/Eigen/SparseCholesky>
 #include <eigen3/Eigen/Eigenvalues>
 #include <eigen3/Eigen/SparseLU>
 
+
+std::vector<double> normalizeC(Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> c){
+    std::vector<double> out;
+
+    double max= 0;
+    for(auto &v:c){
+        if(abs(v.real()) > max){
+            max = v.real();
+        }
+    }
+    for(auto &v:c){
+        out.push_back((v.real()+max)/(2.*max));
+    }
+    std::cout<<"result range: ["<<-max<<", "<<max<<"]\n";
+    return out;
+}
 
 
 bool isBorder(int k, int row){
@@ -36,7 +54,7 @@ bool isBorder(int k, int row){
 int main() {
 
     double liczbafalowa = 51.9988;
-    const int row = 201; //vertices number
+    const int row = 641; //vertices number
     double L = 3.2;
     //vertices number
 
@@ -57,6 +75,7 @@ int main() {
     std::vector<Wall> walls{};
 
 
+    //MAKING WALLS AND CONSTRAINTS
     //some tomfoolery
     double thicness = .1;
     Vertex2D p(-L/2., -L/2.);
@@ -66,15 +85,17 @@ int main() {
     walls.emplace_back(p, L,  thicness);
     p.x = L/2. - thicness; p.y =  - L/2;
     walls.emplace_back(p, thicness, L);
+//    p.x = -L/2 ; p.y =  2*thicness;
+//    walls.emplace_back(p, L/2, L/2);
 
     for(auto &w:walls) w.rot(1);
 
 
-    std::ofstream outputFilep("points.txt");
-    for(auto & vertex : points){
-        outputFilep <<vertex.x << ' ' << vertex.y << std::endl;
-    }
-    outputFilep.close();
+//    std::ofstream outputFilep("points.txt");
+//    for(auto & vertex : points){
+//        outputFilep <<vertex.x << ' ' << vertex.y << std::endl;
+//    }
+//    outputFilep.close();
     std::cout<<"Vertices CREATION END"<<std::endl<<std::endl;
 
 
@@ -89,28 +110,6 @@ int main() {
 //    addQuadVertElements(points, elementsIdx);
 
 
-    std::ofstream outputFileEleMain("elementsVerticesIdxes.txt");
-    std::ofstream outputFileEle("elementsWallVerticesIdxes.txt");
-    for(auto &e:elementsIdxWall){
-        for(auto &i:e){
-            outputFileEle<<i<<" ";
-            outputFileEleMain<<i<<" ";
-        }
-        outputFileEle<<"\n";
-        outputFileEleMain<<"\n";
-    }
-    outputFileEle.close();
-
-    outputFileEle.open("elementsAirVerticesIdxes.txt");
-    for(auto &e:elementsIdxAir){
-        for(auto &i:e){
-            outputFileEle<<i<<" ";
-            outputFileEleMain<<i<<" ";
-        }
-        outputFileEle<<"\n";
-        outputFileEleMain<<"\n";
-    }
-    outputFileEle.close();
 
     const int N = static_cast<int>(points.size());
 
@@ -173,13 +172,17 @@ int main() {
         }
     }
 
-    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> EF(N);
-    for(int i = 0; i < N; i++) EF[i] = F[i];
 
-    F[(row*row)/2] = 1;// F[(row*row)/2 - row] = 1; F[(row*row)/2 + row] = 1;
+    F[(row*row)/2] = 1; //F[(row*row)/2 - row] = 1; F[(row*row)/2 + row] = 1;
 //    F[(row*row)/2 + 1] = 1; F[(row*row)/2 - row + 1] = 1; F[(row*row)/2 + row + 1] = 1;
 //    F[(row*row)/2 - 1] = 1; F[(row*row)/2 - row- 1] = 1; F[(row*row)/2 + row- 1] = 1;
 
+    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> EF(N);
+    for(int i = 0; i < N; i++) EF[i] = F[i];
+
+
+
+    //some debug for saving values to txt files
     bool debug = false;
     if(debug){
 //        std::vector< std::vector<std::complex<double>> > St (N, std::vector<std::complex<double>>(N));
@@ -199,6 +202,29 @@ int main() {
         }
         fileS.close();
         fileF.close();
+
+        std::ofstream outputFileEleMain("elementsVerticesIdxes.txt");
+        std::ofstream outputFileEle("elementsWallVerticesIdxes.txt");
+        for(auto &e:elementsIdxWall){
+            for(auto &i:e){
+                outputFileEle<<i<<" ";
+                outputFileEleMain<<i<<" ";
+            }
+            outputFileEle<<"\n";
+            outputFileEleMain<<"\n";
+        }
+        outputFileEle.close();
+        outputFileEle.open("elementsAirVerticesIdxes.txt");
+        for(auto &e:elementsIdxAir){
+            for(auto &i:e){
+                outputFileEle<<i<<" ";
+                outputFileEleMain<<i<<" ";
+            }
+            outputFileEle<<"\n";
+            outputFileEleMain<<"\n";
+        }
+        outputFileEle.close();
+
     }
 
 
@@ -212,9 +238,10 @@ int main() {
     std::cout<<"Solver CREATION BEGIN"<<std::endl;
     Eigen::SparseLU<Eigen::SparseMatrix<std::complex<double>>>  solver;
 
-    solver.analyzePattern(S);
-
-    solver.factorize(S);
+    solver.compute(S);
+    ////equivalent to compute above?
+    //    solver.analyzePattern(S);
+    //    solver.factorize(S);
 
     std::cout<<"Solver CREATION END"<<std::endl<<std::endl;
 
@@ -224,11 +251,27 @@ int main() {
     c = solver.solve(EF);
     std::cout<<"Solving END"<<std::endl<<std::endl;
 
-    std::ofstream outputFileC("c.txt");
-    for (int i = 0; i<N; i ++){
-        outputFileC<< c[i].real() <<std::endl;
-    }
-    outputFileC.close();
+
+//if(debug){
+//    std::ofstream outputFileC("c.txt");
+//    for (int i = 0; i<N; i ++){
+//        outputFileC<< c[i].real() <<std::endl;
+//    }
+//    outputFileC.close();
+//}
+
+
+
+
+    std::cout<<"normalizing results vip..."<<std::endl;
+    //TODO here should be some results handling
+    auto normc = normalizeC(c); //placeholder
+    std::cout<<"normalizing results END"<<std::endl;
+
+    std::cout<<"OpenGL BEGIN"<<std::endl;
+    CreateOpenGlWindow(points, Elements, normc, L);
+    std::cout<<"OpenGL END"<<std::endl;
+
 
     return 0;
 }
