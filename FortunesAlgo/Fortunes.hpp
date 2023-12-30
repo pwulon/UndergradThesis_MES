@@ -7,6 +7,7 @@
 
 #include <queue>
 #include "../Elements/Vertex2D.hpp"
+#include "../Elements/Wall.hpp"
 #include "Datastruct/Beachline.hpp"
 #include "Datastruct/Event.hpp"
 #include "Math/Parabola.hpp"
@@ -21,6 +22,7 @@ double calculateSlope(const Vertex2D &p1, const Vertex2D &p2);
 void pointsRot(std::vector<Vertex2D> &points, double ang);
 
 void build(std::vector<Vertex2D> &points,
-           std::vector<std::vector<int>> &elements, bool withPointRot = true);
+           std::vector<std::vector<int>> &elementsWall, std::vector<std::vector<int>> &elementsAir,
+           std::vector<Wall> walls, bool withPointRot = true);
 
 #endif //MES_FORTUNES_HPP

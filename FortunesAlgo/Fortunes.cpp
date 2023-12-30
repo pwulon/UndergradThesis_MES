@@ -44,7 +44,8 @@ void pointsRot(std::vector<Vertex2D> &points, double ang){
 }
 
 void build(std::vector<Vertex2D> &points,
-                   std::vector<std::vector<int>> &elements,  bool withPointRot) {
+        std::vector<std::vector<int>> &elementsWall, std::vector<std::vector<int>> &elementsAir,
+        std::vector<Wall> walls,  bool withPointRot) {
 
     // rotate points to doge edge case when too many points are in a straight line
     if(withPointRot)    pointsRot(points, 1);
@@ -146,7 +147,18 @@ void build(std::vector<Vertex2D> &points,
             // store vertex of Voronoi diagram
 //            if (!(vertex->x() > -3.88889 && vertex->x() <  3.88889 &&  vertex->y() > -3.88889 && vertex->y() <  3.88889))
 //                if(!arePointsCollinear(e->ids, points))
-            elements.push_back(e->ids);
+            bool inWall = false;
+            for(auto& w: walls){
+                if(w.isInsideWall(e->center)){
+                    inWall = true;
+                }
+            }
+            if(inWall){
+                elementsWall.push_back(e->ids);
+            }else{
+                elementsAir.push_back(e->ids);
+            }
+
 
 
             // remove circle event corresponding to next leaf

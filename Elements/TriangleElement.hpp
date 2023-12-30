@@ -20,7 +20,7 @@ namespace fem{
     };
 
     enum elementType{
-        AIR, BRICK
+        AIR, BRICK, CONCRETE
     };
 
 
@@ -43,7 +43,8 @@ namespace fem{
     class TriangleElement {
         private:
             static constexpr std::complex<double> air {1,0};
-            static constexpr std::complex<double> brick {1.81934,1.55255e-09};
+            static constexpr std::complex<double> brick {3.31,5.64923e-09};
+            static constexpr std::complex<double> concrete {5.24002,-0.00752353};
 
             void initE();
             void initF();

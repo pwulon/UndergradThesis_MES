@@ -18,7 +18,7 @@ namespace fem {
 
     TriangleElement::TriangleElement(int m, std::vector<Vertex2D> &ver,
                                      std::vector<int> &globIndx,
-                                     double k, elementType et, baseFuncType bft ) : m_{m}, vertices_{&ver}, globalVectorIdx{globIndx}, k_{k} {
+                                     double k, elementType et, baseFuncType bft ) : m_{m}, vertices_{&ver}, n_{et}, globalVectorIdx{globIndx}, k_{k} {
 
         switch (bft) {
             case LIN:
@@ -139,6 +139,8 @@ namespace fem {
                 return air;
             case BRICK:
                 return brick;
+            case CONCRETE:
+                return concrete;
         }
         return std::complex<double>(1. , 0.);
     }

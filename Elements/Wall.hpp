@@ -10,9 +10,10 @@
 
 class Wall {
 public:
-    Vertex2D leftDownCorner, rightUpCorner;
-    Wall(Vertex2D &ldc, Vertex2D &ruc): leftDownCorner{ldc}, rightUpCorner(ruc){}
-
+    Vertex2D leftDownCorner, leftUpCorner, rightDownCorner, rightUpCorner;
+    Wall(Vertex2D ldc, Vertex2D luc, Vertex2D rdc, Vertex2D ruc);
+    Wall(Vertex2D &ldc, double w, double h);
+    void rot(double ang);
     bool isInsideWall(double &x, double &y);
     bool isInsideWall(Vertex2D &p);
 

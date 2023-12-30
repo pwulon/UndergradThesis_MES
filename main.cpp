@@ -35,9 +35,9 @@ bool isBorder(int k, int row){
 
 int main() {
 
-    double liczbafalowa = 9;
-    const int row = 51; //vertices number
-    double L = 1.8;
+    double liczbafalowa = 51.9988;
+    const int row = 201; //vertices number
+    double L = 3.2;
     //vertices number
 
 
@@ -54,54 +54,61 @@ int main() {
         points.emplace_back(- L/2 + (horLen * i), - L/2 + (horLen * j ), isBorder(k,row));
     }
 
-
-//    Vertex2D a(- L/2,- L/2), b(L/2,L/2), aa(.001,.001);
-//    int count=0;
-//    Wall w(a,b);
-//    for(auto &p: points )
-//    if(w.isInsideWall(p)){
-//        count++;
-//    }
-//    std::cout<<count<<std::endl;
+    std::vector<Wall> walls{};
 
 
-    std::cout << sizeof(Vertex2D) << std::endl;
-    std::cout<< sizeof(fem::TriangleElement)<<std::endl;
+    //some tomfoolery
+    double thicness = .1;
+    Vertex2D p(-L/2., -L/2.);
+    walls.emplace_back(p, thicness, L);
+    walls.emplace_back(p, L, thicness);
+    p.y = L/2. - thicness;
+    walls.emplace_back(p, L,  thicness);
+    p.x = L/2. - thicness; p.y =  - L/2;
+    walls.emplace_back(p, thicness, L);
+
+    for(auto &w:walls) w.rot(1);
 
 
     std::ofstream outputFilep("points.txt");
     for(auto & vertex : points){
         outputFilep <<vertex.x << ' ' << vertex.y << std::endl;
     }
-
     outputFilep.close();
     std::cout<<"Vertices CREATION END"<<std::endl<<std::endl;
 
-    std::ofstream outputFile("vertices.txt");
-    for(auto & vertex : points){
-        outputFile <<vertex.x << ' ' << vertex.y <<  ' ' << vertex.isBorder << std::endl;
-    }
-    outputFile.close();
 
-    std::vector<std::vector<int>> elementsIdx;
-
+    std::vector<std::vector<int>> elementsIdxWall;
+    std::vector<std::vector<int>> elementsIdxAir;
 
     // with points rotation implemented inside
-    build(points, elementsIdx);
-
+    build(points, elementsIdxWall, elementsIdxAir, walls);
 
 
 //    // quad elements intersection
 //    addQuadVertElements(points, elementsIdx);
 
 
-
-    std::ofstream outputFileEle("elementsVerticesIdxes.txt");
-    for(auto &e:elementsIdx){
+    std::ofstream outputFileEleMain("elementsVerticesIdxes.txt");
+    std::ofstream outputFileEle("elementsWallVerticesIdxes.txt");
+    for(auto &e:elementsIdxWall){
         for(auto &i:e){
             outputFileEle<<i<<" ";
+            outputFileEleMain<<i<<" ";
         }
         outputFileEle<<"\n";
+        outputFileEleMain<<"\n";
+    }
+    outputFileEle.close();
+
+    outputFileEle.open("elementsAirVerticesIdxes.txt");
+    for(auto &e:elementsIdxAir){
+        for(auto &i:e){
+            outputFileEle<<i<<" ";
+            outputFileEleMain<<i<<" ";
+        }
+        outputFileEle<<"\n";
+        outputFileEleMain<<"\n";
     }
     outputFileEle.close();
 
@@ -111,9 +118,14 @@ int main() {
 
     std::cout<<"Elements CREATION BEGIN"<<std::endl;
 
-    for(auto &idxs:elementsIdx){
-        Elements.emplace_back(0, points, idxs, liczbafalowa);
+    for(auto &idxs:elementsIdxAir){
+        Elements.emplace_back(0, points, idxs, liczbafalowa, fem::AIR);
     }
+
+    for(auto &idxs:elementsIdxWall){
+        Elements.emplace_back(0, points, idxs, liczbafalowa, fem::CONCRETE);
+    }
+
     std::cout<<"Elements CREATION END"<<std::endl<<std::endl;
 
 
@@ -164,26 +176,26 @@ int main() {
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> EF(N);
     for(int i = 0; i < N; i++) EF[i] = F[i];
 
-//    F[(row*row)/2] = 1;// F[(row*row)/2 - row] = 1; F[(row*row)/2 + row] = 1;
+    F[(row*row)/2] = 1;// F[(row*row)/2 - row] = 1; F[(row*row)/2 + row] = 1;
 //    F[(row*row)/2 + 1] = 1; F[(row*row)/2 - row + 1] = 1; F[(row*row)/2 + row + 1] = 1;
 //    F[(row*row)/2 - 1] = 1; F[(row*row)/2 - row- 1] = 1; F[(row*row)/2 + row- 1] = 1;
 
     bool debug = false;
     if(debug){
-        std::vector< std::vector<std::complex<double>> > St (N, std::vector<std::complex<double>>(N));
+//        std::vector< std::vector<std::complex<double>> > St (N, std::vector<std::complex<double>>(N));
 
-        for(auto t:tripletListS){
-            St[t.row()][t.col()] += t.value();
-        }
+//        for(auto t:tripletListS){
+//            St[t.row()][t.col()] += t.value();
+//        }
 
         std::ofstream fileS("resultS.txt");
         std::ofstream fileF("resultF.txt");
 
         for(int i = 0; i< N; i++){
             fileF << F[i] << "\n";
-            for(int j = 0; j<N; j++)
-                fileS << St[i][j] << "\t";
-            fileS << "\n";
+//            for(int j = 0; j<N; j++)
+//                fileS << St[i][j] << "\t";
+//            fileS << "\n";
         }
         fileS.close();
         fileF.close();
