@@ -18,19 +18,38 @@
 #include <eigen3/Eigen/SparseLU>
 
 
-std::vector<double> normalizeC(Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> c){
+void normalizeLogarithmically(std::vector<double>& vec) {
+    // Find the maximum element in the vector
+    double maxElement = *std::max_element(vec.begin(), vec.end());
+    std::cout<<"log range: ["<<0<<", "<<maxElement<<"]\n";
+    // Logarithmically normalize each element
+    for (double& element : vec) {
+        if (maxElement != 0.0) {
+            // Avoid log(0) by checking if maxElement is not zero
+            element = log(element) / log(maxElement);
+        } else {
+            // Handle the case when maxElement is zero (avoid division by zero)
+            element = 0.0;
+        }
+    }
+}
+
+std::vector<double> normalizeC(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> &c){
     std::vector<double> out;
 
-    double max= 0;
+    double maxElement= 0;
     for(auto &v:c){
-        if(abs(v.real()) > max){
-            max = v.real();
+        if(abs(v) > maxElement){
+            maxElement = abs(v);
         }
     }
     for(auto &v:c){
-        out.push_back((v.real()+max)/(2.*max));
+        out.push_back(abs(v)/maxElement);
     }
-    std::cout<<"result range: ["<<-max<<", "<<max<<"]\n";
+
+
+    std::cout<<"abs result range: ["<<0<<", "<<maxElement<<"]\n";
+//    normalizeLogarithmically(out);
     return out;
 }
 
@@ -46,7 +65,6 @@ bool isBorder(int k, int w, int h){
             if(k == i || k == w*(h - 1) + i) return true;
         }
     }
-
     return false;
 }
 
@@ -55,19 +73,17 @@ bool isBorder(int k, int w, int h){
 int main() {
 
 
-//    Eigen::nbThreads();
-//    Eigen::initParallel();
-
-
     double liczbafalowa = 51.9988;;
     fem::TriangleElement::k_ = liczbafalowa;
 
-    const int nVerWidth = 721; //vertices number
-    const int nVerHeight = 641; //vertices number
+    fem::baseFuncType fType = fem::QUAD;
+
+    const int nVerWidth = 181; //vertices number
+    const int nVerHeight = 181; //vertices number
 
 
-    double width = 4.2;
-    double height = 3.2;
+    double width = 5.;
+    double height = 5.;
     //vertices number
 
     double widthEleLen = width / (nVerWidth - 1);
@@ -77,25 +93,40 @@ int main() {
     std::vector<Vertex2D> points;
 
 
-    for(int k =0; k<(nVerWidth)*(nVerHeight);k++){
-        int i = k%(nVerWidth);
-        int j = k/(nVerWidth);
+    const int nDampLayers = 4;
 
-        points.emplace_back(- width/2 + (widthEleLen * i), - height/2 + (heightEleLen * j ), isBorder(k, nVerWidth, nVerHeight));
+    for(int k =0; k<(nVerWidth + 2*nDampLayers)*(nVerHeight + 2*nDampLayers);k++){
+        int i = k%(nVerWidth + 2*nDampLayers);
+        int j = k/(nVerWidth + 2*nDampLayers);
+
+        points.emplace_back(- width/2 - (nDampLayers*widthEleLen) + (widthEleLen * i), - height/2  - (nDampLayers*heightEleLen)+ (heightEleLen * j ), isBorder(k, nVerWidth + 2*nDampLayers, nVerHeight + 2*nDampLayers));
     }
 
-    std::vector<Wall> walls{};
+
 
 
     //MAKING WALLS AND CONSTRAINTS
     //some tomfoolery
-    double thicness = .1;
+    std::vector<Wall> walls{};
+    //
+    walls.emplace_back(- width/2 - (nDampLayers*widthEleLen) , - height/2  - (nDampLayers*heightEleLen),
+                      nDampLayers*widthEleLen, height + 2.*nDampLayers*heightEleLen,
+                       fem::DAMP);
 
-    walls.emplace_back(-width/2., -height/2., thicness, height, fem::CONCRETE);
-    walls.emplace_back(-width/2., -height/2., width, thicness, fem::CONCRETE);
-    walls.emplace_back(-width/2., height/2. - thicness, width,  thicness, fem::CONCRETE);
-    walls.emplace_back(width/2. - thicness,  - height/2, thicness, height, fem::CONCRETE);
-    walls.emplace_back(width/4.,  0, thicness, height, fem::CONCRETE);
+    walls.emplace_back(- width/2 - (nDampLayers*widthEleLen) , - height/2  - (nDampLayers*heightEleLen),
+                       width + 2.*nDampLayers*widthEleLen, nDampLayers*heightEleLen,
+                       fem::DAMP);
+
+    walls.emplace_back(- width/2 - (nDampLayers*widthEleLen), height/2.,
+                       width + 2.*nDampLayers*widthEleLen, nDampLayers*heightEleLen,
+                       fem::DAMP);
+
+    walls.emplace_back(width/2.,  -height/2 - nDampLayers*heightEleLen,
+                       nDampLayers*widthEleLen, height + 2.*nDampLayers*heightEleLen,
+                       fem::DAMP);
+
+
+//    walls.emplace_back(0,  0, widthEleLen*3, height/2, fem::BRICK);
 
 
 
@@ -106,12 +137,12 @@ int main() {
     std::vector<fem::ElementIndices> elementsIdx;
 
     // with points rotation implemented inside
-    build(points, elementsIdx, walls);
+    build(points, elementsIdx, walls, fType);
 
-
-//    // quad elements intersection
-//    addQuadVertElements(points, elementsIdx);
-
+    // quad elements intersection
+    if(fType == fem::QUAD){
+        addQuadVertElements(points, elementsIdx);
+    }
 
 
     const int N = static_cast<int>(points.size());
@@ -121,7 +152,7 @@ int main() {
     std::cout<<"Elements CREATION BEGIN"<<std::endl;
 
     for(auto &idx:elementsIdx){
-        Elements.emplace_back(0, points, idx.indices, idx.n);
+        Elements.emplace_back(0, points, idx);
     }
 
 
@@ -134,7 +165,7 @@ int main() {
 
     for(auto &ele:Elements){
         std::vector<std::vector<std::complex<double>>> &E = ele.E_;
-        std::vector<int> &glob = ele.globalVectorIdx;
+        std::vector<int> &glob = ele.globalVectorIdx.indices;
         for (int k=0 ; k < glob.size();k++){
             for(int l = 0; l < glob.size(); l++ ){
                 int i = glob[k];
@@ -161,24 +192,38 @@ int main() {
     std::vector<double> F(N);
     for(auto &ele:Elements){
         std::vector<double> &Fm = ele.F_;
-        std::vector<int> &glob = ele.globalVectorIdx;
+        std::vector<int> &glob = ele.globalVectorIdx.indices;
         for (int k = 0; k < glob.size(); k++){
                 int i = glob[k];
                 if(points[i].isBorder){
                     F[i] = 0;
                 }else{
-                    F[i] += Fm[k];
+                    F[i] = Fm[k];
                 }
         }
     }
-
 
 //    F[(nVerWidth*nVerHeight)/2] = 1; //F[(row*row)/2 - row] = 1; F[(row*row)/2 + row] = 1;
 //    F[(row*row)/2 + 1] = 1; F[(row*row)/2 - row + 1] = 1; F[(row*row)/2 + row + 1] = 1;
 //    F[(row*row)/2 - 1] = 1; F[(row*row)/2 - row- 1] = 1; F[(row*row)/2 + row- 1] = 1;
 
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> EF(N);
-    for(int i = 0; i < N; i++) EF[i] = F[i];
+
+
+    int minIdx = 0;
+    double minDist = sqrt(pow(points[minIdx].x - (-1.5),2) +  pow(points[minIdx].y -(-.5), 2));
+    for(int i = 1; i < N; i++) {
+        double temp = sqrt(pow(points[i].x - (-.5),2) +  pow(points[i].y -(-.5), 2));
+        if(temp < minDist){
+            minDist = temp;
+            minIdx = i;
+        }
+        EF[i]  = 0;
+
+        //    EF[i] = F[i];
+    }
+    std::cout<< points[minIdx].x << " " << points[minIdx].x<<std::endl;
+    EF[minIdx]  = 1;
 
 
 
@@ -197,40 +242,37 @@ int main() {
 //            St[t.row()][t.col()] += t.value();
 //        }
 
+        double maxElement = *std::max_element(F.begin(), F.end());
+        std::cout<<maxElement<<std::endl;
 //        std::ofstream fileS("resultS.txt");
 //        std::ofstream fileF("resultF.txt");
-//
 //        for(int i = 0; i< N; i++){
-//            fileF << F[i] << "\n";
-////            for(int j = 0; j<N; j++)
-////                fileS << St[i][j] << "\t";
-////            fileS << "\n";
+//            if(F[i]> 1e-3)
+//            fileF << points[i].x<< " " << points[i].y << " " <<  F[i] <<"\n";
+//            for(int j = 0; j<N; j++)
+//                fileS << St[i][j] << "\t";
+//            fileS << "\n";
 //        }
 //        fileS.close();
 //        fileF.close();
 
-//        std::ofstream outputFileEleMain("elementsVerticesIdxes.txt");
         std::ofstream outputFileEleAir("elementsAirVerticesIdxes.txt");
         std::ofstream outputFileEleWall("elementsWallVerticesIdxes.txt");
         for(auto &e:elementsIdx){
             for(auto &i:e.indices){
-                if(e.n == fem::AIR){
+                if(e.et == fem::AIR){
                     outputFileEleAir<<i<<" ";
                 }else{
                     outputFileEleWall<<i<<" ";
                 }
-
-//                outputFileEleMain<<i<<" ";
             }
-            if(e.n == fem::AIR){
+            if(e.et == fem::AIR){
                 outputFileEleAir<<"\n";
             }else{
                 outputFileEleWall<<"\n";
             }
 
-//            outputFileEleMain<<"\n";
         }
-//        outputFileEleMain.close();
         outputFileEleAir.close();
         outputFileEleWall.close();
 
@@ -256,18 +298,23 @@ int main() {
 
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> c;
 
+
+    std::cout<< sizeof(solver)<<std::endl;
+    std::cout<< sizeof(S)<<std::endl;
+
+
     std::cout<<"Solving BEGIN"<<std::endl;
     c = solver.solve(EF);
     std::cout<<"Solving END"<<std::endl<<std::endl;
 
 
-//if(debug){
-//    std::ofstream outputFileC("c.txt");
-//    for (int i = 0; i<N; i ++){
-//        outputFileC<< c[i].real() <<std::endl;
-//    }
-//    outputFileC.close();
-//}
+if(debug){
+    std::ofstream outputFileC("c.txt");
+    for (int i = 0; i<N; i ++){
+        outputFileC<< abs(c[i]) <<std::endl;
+    }
+    outputFileC.close();
+}
 
 
 

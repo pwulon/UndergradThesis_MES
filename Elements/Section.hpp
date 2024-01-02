@@ -9,12 +9,13 @@
 #include <vector>
 #include <unordered_set>
 #include "Vertex2D.hpp"
+#include "TriangleElement.hpp"
 
 struct Section;
 
 struct SecComp;
 
 struct SecHash ;
-void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<std::vector<int>> elementsIdx);
+void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<fem::ElementIndices> &elementsIdx);
 
 #endif //MES_SECTION_HPP

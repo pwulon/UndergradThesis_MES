@@ -23,6 +23,6 @@ void pointsRot(std::vector<Vertex2D> &points, double ang);
 
 void build(std::vector<Vertex2D> &points,
            std::vector<fem::ElementIndices> &elements,
-           std::vector<Wall> walls, bool withPointRot = true);
+           std::vector<Wall> walls, fem::baseFuncType _bft = fem::LIN, bool withPointRot = true);
 
 #endif //MES_FORTUNES_HPP

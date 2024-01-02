@@ -20,14 +20,15 @@ namespace fem{
     };
 
     enum elementType{
-        AIR, BRICK, CONCRETE
+        AIR, BRICK, CONCRETE, DAMP
     };
 
     class ElementIndices{
     public:
-        elementType n;
+        elementType et;
+        baseFuncType bft;
         std::vector<int> indices;
-        ElementIndices(std::vector<int> &_indices, elementType _n);
+        ElementIndices(std::vector<int> &_indices, elementType _et, baseFuncType _ft = fem::LIN);
     };
 
 
@@ -51,7 +52,8 @@ namespace fem{
         private:
             static constexpr std::complex<double> air {1,0};
             static constexpr std::complex<double> brick {3.31,5.64923e-09};
-            static constexpr std::complex<double> concrete {5.24002,-0.00752353};
+            static constexpr std::complex<double> concrete {1, 1};
+            static constexpr std::complex<double> damp {1, 1};
 
             void initE();
             void initF();
@@ -67,14 +69,15 @@ namespace fem{
             Vertex2D globalVector(int &i);
             elementType n_;
             static double k_;
-            std::vector<int> &globalVectorIdx;
+            static Vertex2D source_;
+            fem::ElementIndices &globalVectorIdx;
             std::vector<Vertex2D> *vertices_;
             std::vector<std::vector<std::complex<double>>> E_;
             std::vector<double> F_;
             std::vector<double> jacob_;
             std::vector<std::function<double(double&, double&)>> baseFunc;
 
-            TriangleElement(int m, std::vector<Vertex2D> &ver, std::vector<int> &globIndx, elementType et = AIR, baseFuncType bft = LIN);
+            TriangleElement(int m, std::vector<Vertex2D> &ver, ElementIndices &globIndx);
     };
 }
 

@@ -31,6 +31,8 @@ add_executable(MES main.cpp
         Visualization/CreateOpenGlWindow.cpp
         Visualization/CreateOpenGlWindow.hpp
         Visualization/Shaders.cpp
+        Solver/Solver.cpp
+        Solver/Solver.hpp
 
 )
 

@@ -35,22 +35,26 @@ struct SecHash {
         return h1 ^ h2;
     }
 };
-void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<std::vector<int>> elementsIdx){
+void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<fem::ElementIndices> &elementsIdx){
 //TODO bug dla isBorder, nie wiem jak zdecydowac czy nowy punkt jest na brzegu dla warunkow brzegowych direchleta;
 
     std::unordered_set<Section, SecHash, SecComp> test_set;
-    for(auto &idxs:elementsIdx){
+    for(auto &eli:elementsIdx){
+        auto &idxs = eli.indices;
         for(int i=0;i<3;i++){
             auto iter = test_set.find({idxs[i],idxs[(i+1)%3]});
             if ( iter != test_set.end()){
                 idxs.push_back(iter->i3_);
             }else{
-                ver.emplace_back((ver[idxs[i]].x + ver[idxs[(i+1)%3]].x)/2, (ver[idxs[i]].y + ver[idxs[(i+1)%3]].y)/2);
+                ver.emplace_back((ver[idxs[i]].x + ver[idxs[(i+1)%3]].x)/2, (ver[idxs[i]].y + ver[idxs[(i+1)%3]].y)/2,
+                                 ver[idxs[i]].isBorder && ver[idxs[(i+1)%3]].isBorder);
 //                ver.emplace_back(v, ver[idxs[i]].isBorder && ver[idxs[(i+1)%3]].isBorder);
                 int i3 = static_cast<int>(ver.size() - 1);
                 test_set.insert({idxs[i],idxs[(i+1)%3],i3});
                 idxs.push_back(i3);
             }
         }
+        //magic rearanging
+        idxs = {idxs[5], idxs[0], idxs[3], idxs[1], idxs[4], idxs[2]};
     }
 }

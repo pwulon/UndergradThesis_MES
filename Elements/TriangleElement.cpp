@@ -7,9 +7,11 @@
 
 namespace fem {
 
-    ElementIndices::ElementIndices(std::vector<int> &_indices, elementType _n):indices{_indices}, n{_n} {};
+    ElementIndices::ElementIndices(std::vector<int> &_indices, elementType _et,  baseFuncType _ft):indices{_indices}, et{_et}, bft{_ft} {};
 
     double TriangleElement::k_ = 1;
+    Vertex2D TriangleElement::source_ (-.5, -.5);
+
 
     std::vector<double> xgaus = {-0.3333333, -0.0597158717, -0.0597158717, -0.8805682564, -0.7974269853, -0.7974269853,
                                  0.5948539707};
@@ -18,20 +20,17 @@ namespace fem {
     std::vector<double> wgaus  = {0.45, 0.2647883055, 0.2647883055, 0.2647883055, 0.251878361, 0.251878361, 0.251878361};
 
 
-    TriangleElement::TriangleElement(int m, std::vector<Vertex2D> &ver,
-                                     std::vector<int> &globIndx, elementType et, baseFuncType bft ) : m_{m}, vertices_{&ver}, n_{et}, globalVectorIdx{globIndx} {
+    TriangleElement::TriangleElement(int m, std::vector<Vertex2D> &ver, ElementIndices &globIndx ) : m_{m}, vertices_{&ver}, globalVectorIdx{globIndx} {
 
-        switch (bft) {
+        switch (globalVectorIdx.bft) {
             case LIN:
                 baseFunc  = {&lin_phi0, &lin_phi1, &lin_phi2};
                 break;
             case QUAD:
-                baseFunc = {&quad_phi0, &quad_phi1, &quad_phi2, &quad_phi3, &quad_phi4, &quad_phi5};
+//                baseFunc = {&quad_phi0, &quad_phi1, &quad_phi2, &quad_phi3, &quad_phi4, &quad_phi5};
+                baseFunc = {&quad_phi5, &quad_phi0, &quad_phi3, &quad_phi1, &quad_phi4, &quad_phi2};
                 break;
         }
-
-        F_ = std::vector<double>(baseFunc.size());
-        E_ = std::vector<std::vector<std::complex<double>>>(baseFunc.size(), std::vector<std::complex<double>>(baseFunc.size()));
 
         initJacob();
         initE();
@@ -39,6 +38,7 @@ namespace fem {
     }
 
     void TriangleElement::initE() {
+        E_ = std::vector<std::vector<std::complex<double>>>(baseFunc.size(), std::vector<std::complex<double>>(baseFunc.size()));
         for (int i = 0; i < baseFunc.size(); i++) {
             for (int j = 0; j < baseFunc.size(); j++) {
                 for (int k = 0; k < 7; k++) {
@@ -47,24 +47,26 @@ namespace fem {
                     E_[i][j] += wgaus[k] * jacob_[k] * (
                             -(nablaphi_i.first * nablaphi_j.first +
                             nablaphi_i.second * nablaphi_j.second) +
-                            pow(k_, 2) * pow(getRefIdx(),2) *
+                            pow(k_, 2) * pow(getRefIdx(), 2) *
                             baseFunc[i](fem::xgaus[k], fem::ygaus[k]) * baseFunc[j](fem::xgaus[k], fem::ygaus[k]));
                 }
-//                if (m_ < 2)std::cout << E_[i][j] << "\t"; //debug
             }
-//            if (m_ < 2)std::cout << std::endl; //debug
         }
-//        if (m_ < 2)std::cout << std::endl; //debug
     }
 
     void TriangleElement::initF() {
+        F_ = std::vector<double>(baseFunc.size());
         for (int j = 0; j < baseFunc.size(); j++) {
             if(!globalVector(j).isBorder){
-                for (int k = 0; k < 7; k++) {
-                    F_[j] += wgaus[k] * jacob_[k] *
-                             baseFunc[j](xgaus[k], ygaus[k]) *
-                             rho(map_x(xgaus[k], ygaus[k]), map_y(xgaus[k], ygaus[k]));
+                if(fabs(globalVector(j).x - source_.x) < .1 && fabs(globalVector(j).y - source_.y) < .1){
+                    F_[j] = 1;
                 }
+
+//                for (int k = 0; k < 7; k++) {
+//                    F_[j] += wgaus[k] * jacob_[k] *
+//                             baseFunc[j](xgaus[k], ygaus[k]) *
+//                             rho(map_x(xgaus[k], ygaus[k]), map_y(xgaus[k], ygaus[k]));
+//                }
             }else{
                 F_[j] = 0;
             }
@@ -125,7 +127,7 @@ namespace fem {
     }
 
     Vertex2D TriangleElement::globalVector(int &i){
-        return (*vertices_)[globalVectorIdx[i]];
+        return (*vertices_)[globalVectorIdx.indices[i]];
     }
 
     void TriangleElement::initJacob() {
@@ -135,15 +137,18 @@ namespace fem {
     }
 
     std::complex<double> TriangleElement::getRefIdx() {
-        switch (n_) {
+        switch (globalVectorIdx.et) {
             case AIR:
                 return air;
             case BRICK:
                 return brick;
             case CONCRETE:
                 return concrete;
+            case DAMP:
+                return damp;
+            default:
+                return air;
         }
-        return std::complex<double>(1. , 0.);
     }
 
     double lin_phi0(double &zeta, double &eta) {
@@ -159,8 +164,8 @@ namespace fem {
     }
 
     double rho(double x, double y){
-        double a = 1./16.;
-        return (1./(fabs(a) * sqrt(M_PI)))*exp(-1.*(pow(x/a,2)+pow(y/a,2)));
+        double a = 1./64.;
+        return (1./(fabs(a) * sqrt(M_PI)))*exp(-1.*(pow((x - TriangleElement::source_.x)/a,2)+pow((y  - TriangleElement::source_.y)/a,2)));
     }
 
     double diffQuotient_x(const std::function<double(double&, double&)> &phi, double &x, double &y) {
@@ -201,7 +206,6 @@ namespace fem {
         return  4. * lin_phi1(zeta, eta)*lin_phi2(zeta, eta);
 
     }
-
     double quad_phi5(double &zeta, double &eta) {
         return  4. * lin_phi0(zeta, eta)*lin_phi2(zeta, eta);
     }

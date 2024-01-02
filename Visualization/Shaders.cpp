@@ -31,14 +31,15 @@ unsigned int createShaderProgram(){
             float t = zPosition;
             vec3 color1 = vec3(0.0, 1.0, 1.0);
             vec3 color2 = vec3(0.0, 0.0, 0.0);
-            vec3 color3 = vec3(0.6, 0.0, 0.6);
+            vec3 color3 = vec3(1., 1.0, 1.);
 
-            vec3 color = vec3(0.5, 0.0, 0.5);
-            if(t < 0.5){
-                 color = mix(color1, color2 , t/.5);
-            }else{
-                 color = mix(color2, color3 , (t -.5)*2);
-            }
+//            vec3 color = mix(color2, color3 , log(t + 1)/log(2));
+            vec3 color = mix(color2, color3 , t);
+//            if(t < 0.5){
+//                 color = mix(color1, color2 , t/.5);
+//            }else{
+//                 color = mix(color2, color3 , (t -.5)*2);
+//            }
 
             fragColor = vec4(color, 1.0);
         }

@@ -45,7 +45,7 @@ void pointsRot(std::vector<Vertex2D> &points, double ang){
 
 void build(std::vector<Vertex2D> &points,
            std::vector<fem::ElementIndices> &elements,
-           std::vector<Wall> walls,  bool withPointRot) {
+           std::vector<Wall> walls, fem::baseFuncType _bft,   bool withPointRot) {
 
     // rotate points to doge edge case when too many points are in a straight line
     if(withPointRot) {
@@ -148,12 +148,12 @@ void build(std::vector<Vertex2D> &points,
             for(auto& w: walls){
                 if(w.isInsideWall(e->center)){
                     inWall = true;
-                    elements.emplace_back(e->vertexIindices, w.type);
+                    elements.emplace_back(e->vertexIindices, w.type, _bft);
                     break;
                 }
             }
             if(!inWall){
-                elements.emplace_back(e->vertexIindices, fem::AIR);
+                elements.emplace_back(e->vertexIindices, fem::AIR, _bft);
             }
 
 

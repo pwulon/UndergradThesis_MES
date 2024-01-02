@@ -78,9 +78,26 @@ int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::Triangl
     }
 
     for(auto&e:Elements){
-        for(auto &i:e.globalVectorIdx){
-            indecesBuffer.insert(indecesBuffer.end(), {static_cast<GLuint>(i)});
+        switch (e.globalVectorIdx.bft) {
+            case fem::LIN:
+                for(auto &i:e.globalVectorIdx.indices){
+                    indecesBuffer.insert(indecesBuffer.end(), {static_cast<GLuint>(i)});
+                }
+                break;
+            case fem::QUAD:
+                for(int i=0;i<6;i+=2){
+                    for(int j=0; j<3;j++){
+                        indecesBuffer.insert(indecesBuffer.end(), {static_cast<GLuint>(e.globalVectorIdx.indices[(i+j)%6])});
+                    }
+                }
+                for(int i=0;i<6;i+=2){
+                    indecesBuffer.insert(indecesBuffer.end(), {static_cast<GLuint>(e.globalVectorIdx.indices[i])});
+                }
+                break;
+
+
         }
+
     }
 
 //    vertices.insert(vertices.end(), {0.5f, -0.5f, 0.0f, 1.0f,  0.5f, 0.5f, 0.0f,  0.5f, 0.5f});
