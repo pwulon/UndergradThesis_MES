@@ -34,7 +34,7 @@ namespace fem {
 
         initJacob();
         initE();
-        initF();
+//        initF();
     }
 
     void TriangleElement::initE() {

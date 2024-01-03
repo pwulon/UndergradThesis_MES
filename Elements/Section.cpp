@@ -8,7 +8,7 @@
 struct Section{
     int i1_, i2_, i3_;
 
-    Section(int _i1, int _i2, int _i3 = 0): i3_{_i3}{
+    Section(int &_i1, int &_i2, int _i3 = 0): i3_{_i3}{
         if(_i1 < _i2 ){
             i1_ = _i1;
             i2_ = _i2;
@@ -38,19 +38,22 @@ struct SecHash {
 void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<fem::ElementIndices> &elementsIdx){
 //TODO bug dla isBorder, nie wiem jak zdecydowac czy nowy punkt jest na brzegu dla warunkow brzegowych direchleta;
 
-    std::unordered_set<Section, SecHash, SecComp> test_set;
+    std::unordered_set<Section, SecHash, SecComp> sectionSet;
     for(auto &eli:elementsIdx){
         auto &idxs = eli.indices;
         for(int i=0;i<3;i++){
-            auto iter = test_set.find({idxs[i],idxs[(i+1)%3]});
-            if ( iter != test_set.end()){
+            const Vertex2D& vertex1 = ver[idxs[i]];
+            const Vertex2D& vertex2 = ver[idxs[(i + 1) % 3]];
+            auto iter = sectionSet.find({idxs[i], idxs[(i + 1) % 3]});
+            if (iter != sectionSet.end()){
                 idxs.push_back(iter->i3_);
+                sectionSet.erase(iter);
             }else{
-                ver.emplace_back((ver[idxs[i]].x + ver[idxs[(i+1)%3]].x)/2, (ver[idxs[i]].y + ver[idxs[(i+1)%3]].y)/2,
-                                 ver[idxs[i]].isBorder && ver[idxs[(i+1)%3]].isBorder);
-//                ver.emplace_back(v, ver[idxs[i]].isBorder && ver[idxs[(i+1)%3]].isBorder);
+                ver.emplace_back((vertex1.x + vertex2.x)/2, (vertex1.y + vertex2.y)/2,
+                                 vertex1.isBorder && vertex2.isBorder);
+
                 int i3 = static_cast<int>(ver.size() - 1);
-                test_set.insert({idxs[i],idxs[(i+1)%3],i3});
+                sectionSet.insert({idxs[i], idxs[(i + 1) % 3], i3});
                 idxs.push_back(i3);
             }
         }

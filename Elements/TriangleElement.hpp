@@ -32,18 +32,18 @@ namespace fem{
     };
 
 
-    double lin_phi0(double &zeta, double &eta);
-    double lin_phi1(double &zeta, double &eta);
-    double lin_phi2(double &zeta, double &eta);
+    inline double lin_phi0(double &zeta, double &eta);
+    inline double lin_phi1(double &zeta, double &eta);
+    inline double lin_phi2(double &zeta, double &eta);
 
-    double quad_phi0(double &zeta, double &eta);
-    double quad_phi1(double &zeta, double &eta);
-    double quad_phi2(double &zeta, double &eta);
-    double quad_phi3(double &zeta, double &eta);
-    double quad_phi4(double &zeta, double &eta);
-    double quad_phi5(double &zeta, double &eta);
+    inline double quad_phi0(double &zeta, double &eta);
+    inline double quad_phi1(double &zeta, double &eta);
+    inline double quad_phi2(double &zeta, double &eta);
+    inline double quad_phi3(double &zeta, double &eta);
+    inline double quad_phi4(double &zeta, double &eta);
+    inline double quad_phi5(double &zeta, double &eta);
 
-    double rho(double x, double y);
+    inline double rho(double x, double y);
 
     double diffQuotient_x(const std::function<double(double&, double&)> &phi, double &x, double &y);
     double diffQuotient_y(const std::function<double(double&, double&)> &phi, double &x, double &y);

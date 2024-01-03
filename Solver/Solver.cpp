@@ -147,7 +147,7 @@ namespace fem::solve {
 
     Solver& Solver::draw() {
         auto normalSolution = normalizeSolution(); //placeholder
-        CreateOpenGlWindow(points, Elements, normalSolution, width, height, 1920, 1080);
+        CreateOpenGlWindow(points, Elements, normalSolution, width, height, 1220, 1080);
         return *this;
     }
 
@@ -191,14 +191,20 @@ namespace fem::solve {
                                                                             nVerHeight(nVerHeight) {
         widthEleLen = width / (nVerWidth - 1);
         heightEleLen = height / (nVerHeight - 1);
-        fem::TriangleElement::k_ = 2.*M_PI*frequency/(2.99792458 * pow(10,8));
+        fem::TriangleElement::k_ = 2. * M_PI * frequency * pow(10,9)/(2.99792458 * pow(10,8));
     }
 
     Solver& Solver::buildElements() {
         int m = 0;
+        auto start = std::chrono::high_resolution_clock::now();
         for (auto &idx: elementsIdx) {
             Elements.emplace_back(m++, points, idx);
         }
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        std::cout << "Time taken by function: " << duration.count() << " microseconds" << std::endl;
+        std::cout << "Time taken by function: " << duration.count()/Elements.size() << std::endl;
+
         return *this;
     }
 

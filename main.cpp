@@ -11,19 +11,19 @@
 
 int main() {
 
-    fem::baseFuncType fType = fem::LIN;
+    fem::baseFuncType fType = fem::QUAD;
 
-    const int nVerWidth = 521; //vertices number
-    const int nVerHeight = 361; //vertices number
+    const int nVerWidth = 271; //vertices number
+    const int nVerHeight = 231; //vertices number
 
 
     double width = 5.2;
-    double height = 3.6;
+    double height = 4.6;
     //vertices number
 
     Vertex2D sPoint(0, 0);
     std::cout<<"Constructor"<<std::endl;
-    fem::solve::Solver s1(width, height, nVerWidth, nVerHeight, sPoint, fType);
+    fem::solve::Solver s1(width, height, nVerWidth, nVerHeight, sPoint, fType, 2.4);
 
     std::cout<<"setNumberOfDampLayers"<<std::endl;
     s1.setNumberOfDampLayers(4);
@@ -36,10 +36,10 @@ int main() {
     Wall w1(1., .33, .2, height, fem::DAMP);
     Wall w3(1.75, .33, width, .2, fem::DAMP);
     Wall w4(.5, -1., width, .2, fem::DAMP);
+    Wall w5(-.5, -.5, .3, 1., fem::DAMP);
     Wall w2(-width*.5, -height*.5, .2, height, fem::DAMP);
     w2.rot(45);
-    s1.addWall(w1).addWall(w2).addWall(w3).addWall(w4);
-
+    s1.addWall(w1).addWall(w2).addWall(w3).addWall(w4).addWall(w5);
 
     std::cout<<"divideIntoElements"<<std::endl;
     s1.divideIntoElements();
@@ -54,7 +54,7 @@ int main() {
     s1.buildSolver();
 
     std::cout<<"buildLoadVector"<<std::endl;
-    s1.buildLoadVector(1., 0.);
+    s1.buildLoadVector(1.5, 0.);
 
     std::cout<<"solve"<<std::endl;
     s1.solve();
@@ -65,8 +65,8 @@ int main() {
 //    std::cout<<"buildLoadVector"<<std::endl;
 
     for(int t = 1; t<25;t++){
-        double x = 1.*cos(t*2*M_PI/25.);
-        double y = 1.*sin(t*2*M_PI/25.);
+        double x = 1.5*cos(t*2*M_PI/25.);
+        double y = 1.5*sin(t*2*M_PI/25.);
         s1.buildLoadVector(x, y).solve().draw();
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }

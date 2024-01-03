@@ -202,6 +202,7 @@ int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::Triangl
     // Clean up resources
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
     glDeleteProgram(shaderProgram);
 
     glfwTerminate();

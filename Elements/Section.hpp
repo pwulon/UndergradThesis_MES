@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 #include "Vertex2D.hpp"
 #include "TriangleElement.hpp"
 

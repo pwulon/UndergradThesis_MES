@@ -9,6 +9,7 @@
 #include <cmath>
 #include <vector>
 #include <fstream>
+#include <chrono>
 
 #include "../Elements/TriangleElement.hpp"
 #include "../Elements/Section.hpp"
@@ -58,7 +59,7 @@ namespace fem {
 //        Solver();
 
         Solver(double width, double height, int nVerWidth, int nVerHeight, const Vertex2D &sourcePoint,
-               fem::baseFuncType fType = fem::LIN,  double frequency = 2.4 * pow(10,9));
+               fem::baseFuncType fType = fem::LIN,  double frequency = 2.4 );
 
         Solver& setNumberOfDampLayers(int i);
 
