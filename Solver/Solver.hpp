@@ -25,24 +25,59 @@
 
 namespace fem {
     namespace solve{
-class Solver {
-private:
 
+    class Solver {
+    private:
+        int nDampLayers;
+        std::vector<Vertex2D> points;
+        std::vector<Wall> walls;
+        std::vector<fem::ElementIndices> elementsIdx;
+        std::vector<fem::TriangleElement> Elements;
+        fem::baseFuncType fType;
+        int nVertices;
+        Eigen::SparseMatrix<std::complex<double>> stiffnessMatrix;
+        Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> loadVector;
+        Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> solutions;
+        Eigen::SparseLU<Eigen::SparseMatrix<std::complex<double>>>  solverLU;
 
-public:
-    std::vector<Vertex2D> points;
+        double frequency;
+        std::vector<double> normalizeSolution();
+        bool isOnEdge(int k);
 
-    unsigned int canvasWidth, canvasHeight;
-    double width = 3.2;
-    double height = 3.2;
-    const int nVerWidth = 641; //vertices number
-    const int nVerHeight = 641; //vertices number
+        unsigned int canvasWidth, canvasHeight;
+        double width ;
+        double height ;
+        int nVerWidth; //vertices number
+        int nVerHeight; //vertices number
 
-    bool isOnEdge(int k);
-    void generateSimpleMesh();
+        double widthEleLen ;
+        double heightEleLen ;
 
+    public:
+        Vertex2D sourcePoint;
+//        Solver();
 
-};
+        Solver(double width, double height, int nVerWidth, int nVerHeight, const Vertex2D &sourcePoint,
+               fem::baseFuncType fType = fem::LIN,  double frequency = 2.4 * pow(10,9));
+
+        Solver& setNumberOfDampLayers(int i);
+
+        Solver& generateSimpleMesh();
+
+        Solver& initDampWalls();
+        Solver& addWall(double leftDownX, double leftDownY, double w, double h, fem::elementType elt);
+        Solver& addWall(Wall &w);
+
+        Solver& divideIntoElements();
+        Solver& buildElements();
+        Solver& buildStiffnessMatrix();
+        Solver& buildLoadVector();
+        Solver& buildLoadVector(double sx, double sy);
+        Solver& buildSolver();
+        Solver& solve();
+        Solver& draw();
+        Solver& doAll();
+    };
 
 
 #endif //MES_SOLVER_HPP

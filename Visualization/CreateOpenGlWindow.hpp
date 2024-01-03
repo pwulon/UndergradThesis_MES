@@ -9,7 +9,10 @@
 #include "Shaders.hpp"
 #include "../Elements/TriangleElement.hpp"
 #include "../Elements/Vertex2D.hpp"
-//#include <eigen3/Eigen/Eigenvalues>
+
+#include <iostream>
+#include <ctime>
+#include <sstream>
 
 
 
@@ -18,7 +21,11 @@ void saveScreenshot(const char* filename, GLFWwindow* window);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::TriangleElement> &Elements, std::vector<double> &c, double w, double h);
+int CreateOpenGlWindow(std::vector<Vertex2D> &vertices,
+                       std::vector<fem::TriangleElement> &Elements,
+                       std::vector<double> &c,
+                       double w, double h,
+                       int resolutionW, int resolutionH);
 
 
 #endif //MES_CREATEOPENGLWINDOW_HPP

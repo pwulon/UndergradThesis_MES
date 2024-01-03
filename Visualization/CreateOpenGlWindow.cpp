@@ -8,7 +8,7 @@
 #include "glad/stb_image_write.h"
 //#endif
 
-void saveScreenshot(const char* filename, GLFWwindow* window) {
+void saveScreenshot(std::string  filename, GLFWwindow* window) {
 
     int width, height;
 
@@ -26,7 +26,8 @@ void saveScreenshot(const char* filename, GLFWwindow* window) {
     }
 
     // Save the image using stb_image_write
-    stbi_write_jpg(filename, width, height, 3, pixels, 100);
+    const char* charPointer = filename.c_str();
+    stbi_write_jpg(charPointer, width, height, 3, pixels, 100);
 
     delete[] pixels;
 }
@@ -36,15 +37,42 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::TriangleElement> &Elements, std::vector<double> &c, double w, double h){
+std::string generateFilename(int width, int height) {
+    // Get current time
+    std::time_t t = std::time(nullptr);
+    std::tm* now = std::localtime(&t);
+
+    // Create a stringstream for formatting the filename
+    std::stringstream filenameStream;
+
+    // Append date and time to the filename
+    filenameStream << (now->tm_year + 1900) << '-'
+                   << (now->tm_mon + 1) << '-'
+                   << now->tm_mday << '_'
+                   << now->tm_hour << '-'
+                   << now->tm_min << '-'
+                   << now->tm_sec << '-';
+
+    // Append resolution to the filename
+    filenameStream << '_' << width << 'x' << height << ".jpg";
+
+    // Get the final filename as a string
+    std::string filename = filenameStream.str();
+
+    return filename;
+}
+
+int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::TriangleElement> &Elements, std::vector<double> &c, double w, double h,
+                       int resolutionW, int resolutionH){
     glfwInit();
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 
-    GLFWwindow* window = glfwCreateWindow( static_cast<GLint>(800*(w/h)), 800, "LearnOpenGL", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow( static_cast<GLint>(resolutionW), static_cast<GLint>(resolutionH), "LearnOpenGL", nullptr, nullptr);
     if (window == nullptr)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -128,25 +156,21 @@ int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::Triangl
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glViewport(0, 0, static_cast<GLint>(800*(w/h)), 800);
-    glClearColor(0.1, 0.2, 0.2, 0.0);
-
+    glViewport(0, 0, static_cast<GLint>(resolutionW), static_cast<GLint>(resolutionH));
 
     auto ortMtrx = makeOrto(-w/2, w/2, -h/2, h/2, -2., 12.);
 
+//    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    while(!glfwWindowShouldClose(window))
+//    while(!glfwWindowShouldClose(window))
     {
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(window, true);
+//        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+//            glfwSetWindowShouldClose(window, true);
 
-        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
-        {
-            saveScreenshot("screenshot.jpg", window);
-
-        }
+//        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+//        {
+//            saveScreenshot("screenshot.jpg", window);
+//        }
 
 
         // Rendering commands
@@ -171,7 +195,8 @@ int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::Triangl
 
         // Swap buffers and poll events
         glfwSwapBuffers(window);
-        glfwPollEvents();
+        std::string filename = generateFilename(resolutionW, resolutionH);
+        saveScreenshot(filename, window);
     }
 
     // Clean up resources
