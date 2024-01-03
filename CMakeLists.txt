@@ -33,7 +33,8 @@ add_executable(MES main.cpp
         Visualization/Shaders.cpp
         Solver/Solver.cpp
         Solver/Solver.hpp
-
+        Visualization/base64.cpp
+        Visualization/base64.h
 )
 
 target_link_libraries(MES glfw ${CMAKE_DL_LIBS})

@@ -8,12 +8,13 @@
 #include "glad/stb_image_write.h"
 //#endif
 
-void saveScreenshot(std::string  filename, GLFWwindow* window) {
+std::string saveScreenshot(std::string  filename, GLFWwindow* window) {
 
     int width, height;
 
     glfwGetWindowSize(window, &width, &height);
-    unsigned char* pixels = new unsigned char[3 * width * height];
+    size_t size = 3 * width * height;
+    unsigned char* pixels = new unsigned char[size];
 
     // Read the pixel data from the framebuffer
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
@@ -25,11 +26,14 @@ void saveScreenshot(std::string  filename, GLFWwindow* window) {
         }
     }
 
+    auto img64 = base64_encode(pixels, size);
+
     // Save the image using stb_image_write
     const char* charPointer = filename.c_str();
     stbi_write_jpg(charPointer, width, height, 3, pixels, 100);
 
     delete[] pixels;
+    return img64;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -62,7 +66,7 @@ std::string generateFilename(int width, int height) {
     return filename;
 }
 
-int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::TriangleElement> &Elements, std::vector<double> &c, double w, double h,
+std::string  CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::TriangleElement> &Elements, std::vector<double> &c, double &w, double &h,
                        int resolutionW, int resolutionH){
     glfwInit();
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -77,14 +81,14 @@ int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::Triangl
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
-        return -1;
+        return "";
     }
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
+        return "";
     }
 
 
@@ -173,31 +177,31 @@ int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::Triangl
 //        }
 
 
-        // Rendering commands
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+    // Rendering commands
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-        // Use the shader program
-        glUseProgram(shaderProgram);
+    // Use the shader program
+    glUseProgram(shaderProgram);
 
-        int projectionLocation = glGetUniformLocation(shaderProgram, "projection");
+    int projectionLocation = glGetUniformLocation(shaderProgram, "projection");
 
-        glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, ortMtrx.get());
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, ortMtrx.get());
 
-        // Bind the VAO
-        glBindVertexArray(VAO);
+    // Bind the VAO
+    glBindVertexArray(VAO);
 
-        // Draw the triangle
-        glDrawElements(GL_TRIANGLES, indecesBuffer.size(), GL_UNSIGNED_INT, 0);
+    // Draw the triangle
+    glDrawElements(GL_TRIANGLES, indecesBuffer.size(), GL_UNSIGNED_INT, 0);
 
-        // Unbind the VAO
-        glBindVertexArray(0);
+    // Unbind the VAO
+    glBindVertexArray(0);
 
-        // Swap buffers and poll events
-        glfwSwapBuffers(window);
-        std::string filename = generateFilename(resolutionW, resolutionH);
-        saveScreenshot(filename, window);
-    }
+    // Swap buffers and poll events
+    glfwSwapBuffers(window);
+    std::string filename = generateFilename(resolutionW, resolutionH);
+    auto img64 = saveScreenshot(filename, window);
+
 
     // Clean up resources
     glDeleteVertexArrays(1, &VAO);
@@ -206,5 +210,5 @@ int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::Triangl
     glDeleteProgram(shaderProgram);
 
     glfwTerminate();
-    return 0;
+    return img64;
 }

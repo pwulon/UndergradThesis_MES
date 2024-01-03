@@ -5,12 +5,6 @@
 #include "Solver.hpp"
 
 
-
-//fem::solve::Solver::Solver(){
-//    widthEleLen = width / (nVerWidth - 1);
-//    heightEleLen = height / (nVerHeight - 1);
-//
-//}
 namespace fem::solve {
 
     bool Solver::isOnEdge(int k) {
@@ -34,25 +28,25 @@ namespace fem::solve {
             points.emplace_back(-width / 2 - (nDampLayers * widthEleLen) + (widthEleLen * i),
                                 -height / 2 - (nDampLayers * heightEleLen) + (heightEleLen * j), isOnEdge(k));
         }
-        return *this;
+        return initDampWalls();
     }
 
     Solver& Solver::initDampWalls() {
-        walls.emplace_back(-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
-                           nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
-                           fem::DAMP);
+        walls.insert(walls.begin(),   {-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
+                                      nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
+                                      fem::DAMP});
 
-        walls.emplace_back(-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
-                           width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
-                           fem::DAMP);
+        walls.insert(walls.begin(),{-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
+                                    width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
+                                    fem::DAMP});
 
-        walls.emplace_back(-width / 2 - (nDampLayers * widthEleLen), height / 2.,
-                           width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
-                           fem::DAMP);
+        walls.insert(walls.begin(), {-width / 2 - (nDampLayers * widthEleLen), height / 2.,
+                                     width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
+                                     fem::DAMP});
 
-        walls.emplace_back(width / 2., -height / 2 - nDampLayers * heightEleLen,
-                           nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
-                           fem::DAMP);
+        walls.insert(walls.begin(), {width / 2., -height / 2 - nDampLayers * heightEleLen,
+                                     nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
+                                     fem::DAMP});
         return *this;
     }
 
@@ -120,19 +114,11 @@ namespace fem::solve {
     }
 
     Solver& Solver::buildLoadVector(double sx, double sy) {
-        loadVector = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1>(nVertices);
-        int minIdx = 0;
-        double minDist = sqrt(pow(points[minIdx].x - (sx), 2) + pow(points[minIdx].y - (sy), 2));
-        for (int i = 1; i < nVertices; i++) {
-            double temp = sqrt(pow(points[i].x - (sx), 2) + pow(points[i].y - (sy), 2));
-            if (temp < minDist) {
-                minDist = temp;
-                minIdx = i;
-            }
-            loadVector[i] = 0;
-        }
-        loadVector[minIdx] = 1.;
-        return *this;
+        return setSourcePoint(sx,sy).buildLoadVector();
+    }
+
+    Solver &Solver::buildLoadVector(const Vertex2D &p) {
+        return setSourcePoint(p).buildLoadVector();
     }
 
     Solver& Solver::buildSolver() {
@@ -145,10 +131,10 @@ namespace fem::solve {
         return *this;
     }
 
-    Solver& Solver::draw() {
+    std::string Solver::draw() {
         auto normalSolution = normalizeSolution(); //placeholder
-        CreateOpenGlWindow(points, Elements, normalSolution, width, height, 1220, 1080);
-        return *this;
+        auto encodedImg = CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight);
+        return encodedImg;
     }
 
     std::vector<double> fem::solve::Solver::normalizeSolution() {
@@ -182,15 +168,15 @@ namespace fem::solve {
         return *this;
     }
 
-    Solver::Solver(double width, double height, int nVerWidth, int nVerHeight, const Vertex2D &sourcePoint,
-                               fem::baseFuncType fType, double frequency) : fType(fType),
-                                                                            sourcePoint(sourcePoint),
-                                                                            frequency(frequency),
+    Solver::Solver(double width, double height, int nVerWidth, int nVerHeight) :
                                                                             width(width), height(height),
                                                                             nVerWidth(nVerWidth),
                                                                             nVerHeight(nVerHeight) {
         widthEleLen = width / (nVerWidth - 1);
         heightEleLen = height / (nVerHeight - 1);
+        canvasWidth = 900;
+        canvasHeight = static_cast<unsigned int>(canvasWidth * (height/width));
+
         fem::TriangleElement::k_ = 2. * M_PI * frequency * pow(10,9)/(2.99792458 * pow(10,8));
     }
 
@@ -217,6 +203,34 @@ namespace fem::solve {
         walls.push_back(w);
         return *this;;
     }
+
+    Solver &Solver::setSourcePoint(double x, double y) {
+        this->sourcePoint = Vertex2D(x,y);
+        return *this;
+    }
+
+    Solver &Solver::setSourcePoint(const Vertex2D &p) {
+        this->sourcePoint = Vertex2D(p);
+        return *this;
+    }
+
+    Solver &Solver::setFrequency(double f) {
+        this->frequency = f;
+        fem::TriangleElement::k_ = 2. * M_PI * frequency * pow(10,9)/(2.99792458 * pow(10,8));
+        return *this;
+    }
+
+    Solver &Solver::setBaseFunctionType(fem::baseFuncType fType) {
+        this->fType = fType;
+        return *this;
+    }
+
+    Solver &Solver::setImageSize(unsigned int x, unsigned int y) {
+        canvasWidth = x;
+        canvasHeight = y;
+        return *this;
+    }
+
 
 }
 

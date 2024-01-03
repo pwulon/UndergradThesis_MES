@@ -8,31 +8,19 @@
 
 #include "Solver/Solver.hpp"
 
-
 int main() {
-
-    fem::baseFuncType fType = fem::QUAD;
-
     const int nVerWidth = 271; //vertices number
-    const int nVerHeight = 231; //vertices number
+    const int nVerHeight = 271; //vertices number
 
+    const double width = 5.2;
+    const double height = 5.2;
 
-    double width = 5.2;
-    double height = 4.6;
-    //vertices number
-
-    Vertex2D sPoint(0, 0);
     std::cout<<"Constructor"<<std::endl;
-    fem::solve::Solver s1(width, height, nVerWidth, nVerHeight, sPoint, fType, 2.4);
+    fem::solve::Solver s1(width, height, nVerWidth, nVerHeight);
+    s1.setImageSize(1600,1600).setBaseFunctionType(fem::LIN);
 
-    std::cout<<"setNumberOfDampLayers"<<std::endl;
-    s1.setNumberOfDampLayers(4);
-
-    std::cout<<"generateSimpleMesh"<<std::endl;
-    s1.generateSimpleMesh();
 
     std::cout<<"initDampWalls"<<std::endl;
-    s1.initDampWalls();
     Wall w1(1., .33, .2, height, fem::DAMP);
     Wall w3(1.75, .33, width, .2, fem::DAMP);
     Wall w4(.5, -1., width, .2, fem::DAMP);
@@ -40,6 +28,9 @@ int main() {
     Wall w2(-width*.5, -height*.5, .2, height, fem::DAMP);
     w2.rot(45);
     s1.addWall(w1).addWall(w2).addWall(w3).addWall(w4).addWall(w5);
+
+    std::cout<<"generateSimpleMesh"<<std::endl;
+    s1.generateSimpleMesh();
 
     std::cout<<"divideIntoElements"<<std::endl;
     s1.divideIntoElements();
@@ -61,15 +52,6 @@ int main() {
 
     std::cout<<"draw"<<std::endl;
     s1.draw();
-
-//    std::cout<<"buildLoadVector"<<std::endl;
-
-    for(int t = 1; t<25;t++){
-        double x = 1.5*cos(t*2*M_PI/25.);
-        double y = 1.5*sin(t*2*M_PI/25.);
-        s1.buildLoadVector(x, y).solve().draw();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
 
 
     return 0;

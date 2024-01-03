@@ -29,21 +29,13 @@ namespace fem {
 
     class Solver {
     private:
-        int nDampLayers;
-        std::vector<Vertex2D> points;
-        std::vector<Wall> walls;
-        std::vector<fem::ElementIndices> elementsIdx;
-        std::vector<fem::TriangleElement> Elements;
-        fem::baseFuncType fType;
-        int nVertices;
-        Eigen::SparseMatrix<std::complex<double>> stiffnessMatrix;
-        Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> loadVector;
-        Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> solutions;
-        Eigen::SparseLU<Eigen::SparseMatrix<std::complex<double>>>  solverLU;
+        int nDampLayers = 4;
+        double frequency = 2.4 ;
+        fem::baseFuncType fType = fem::LIN;
+        Vertex2D sourcePoint = Vertex2D(0., 0.);
 
-        double frequency;
-        std::vector<double> normalizeSolution();
-        bool isOnEdge(int k);
+        double widthEleLen ;
+        double heightEleLen ;
 
         unsigned int canvasWidth, canvasHeight;
         double width ;
@@ -51,21 +43,41 @@ namespace fem {
         int nVerWidth; //vertices number
         int nVerHeight; //vertices number
 
-        double widthEleLen ;
-        double heightEleLen ;
+
+        std::vector<Vertex2D> points;
+        std::vector<Wall> walls;
+        std::vector<fem::ElementIndices> elementsIdx;
+        std::vector<fem::TriangleElement> Elements;
+        int nVertices;
+        Eigen::SparseMatrix<std::complex<double>> stiffnessMatrix;
+        Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> loadVector;
+        Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> solutions;
+        Eigen::SparseLU<Eigen::SparseMatrix<std::complex<double>>>  solverLU;
+
+
+        std::vector<double> normalizeSolution();
+        bool isOnEdge(int k);
+        Solver& initDampWalls();
+
+
 
     public:
-        Vertex2D sourcePoint;
-//        Solver();
 
-        Solver(double width, double height, int nVerWidth, int nVerHeight, const Vertex2D &sourcePoint,
-               fem::baseFuncType fType = fem::LIN,  double frequency = 2.4 );
+
+        Solver(double width, double height, int nVerWidth, int nVerHeight);
 
         Solver& setNumberOfDampLayers(int i);
+        Solver& setFrequency(double f);
+        Solver& setBaseFunctionType( fem::baseFuncType fType);
+        Solver& setSourcePoint(const Vertex2D &p);
+        Solver& setSourcePoint(double x, double y);
+        Solver& setImageSize(unsigned int x, unsigned int y);
+
+
 
         Solver& generateSimpleMesh();
 
-        Solver& initDampWalls();
+
         Solver& addWall(double leftDownX, double leftDownY, double w, double h, fem::elementType elt);
         Solver& addWall(Wall &w);
 
@@ -74,9 +86,10 @@ namespace fem {
         Solver& buildStiffnessMatrix();
         Solver& buildLoadVector();
         Solver& buildLoadVector(double sx, double sy);
+        Solver& buildLoadVector(const Vertex2D &p);
         Solver& buildSolver();
         Solver& solve();
-        Solver& draw();
+        std::string draw();
         Solver& doAll();
     };
 
