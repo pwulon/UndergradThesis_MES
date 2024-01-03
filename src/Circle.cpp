@@ -2,7 +2,7 @@
 // Created by Pawulon on 13/12/2023.
 //
 
-#include "Circle.hpp"
+#include "../FortunesAlgo/Math/Circle.hpp"
 
 
 bool findCircleCenter(const Vertex2D &p1, const Vertex2D &p2, const Vertex2D &p3, Vertex2D &center) {

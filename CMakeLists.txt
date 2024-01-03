@@ -1,40 +1,41 @@
 cmake_minimum_required(VERSION 3.22)
 project(MES)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 add_compile_options(-O3 -fopenmp)
 
 add_executable(MES main.cpp
-        Elements/TriangleElement.cpp
+        src/TriangleElement.cpp
         Elements/TriangleElement.hpp
-        Elements/Vertex2D.cpp
+        src/Vertex2D.cpp
         Elements/Vertex2D.hpp
-        FortunesAlgo/Datastruct/Beachline.cpp
+        src/Beachline.cpp
         FortunesAlgo/Datastruct/Beachline.hpp
-        FortunesAlgo/Math/Circle.cpp
+        src/Circle.cpp
         FortunesAlgo/Math/Circle.hpp
-        FortunesAlgo/Math/Parabola.cpp
+        src/Parabola.cpp
         FortunesAlgo/Math/Parabola.hpp
-        FortunesAlgo/Fortunes.cpp
+        src/Fortunes.cpp
         FortunesAlgo/Fortunes.hpp
-        FortunesAlgo/Datastruct/Event.cpp
+        src/Event.cpp
         FortunesAlgo/Datastruct/Event.hpp
-        Elements/Wall.cpp
+        src/Wall.cpp
         Elements/Wall.hpp
-        Elements/Section.cpp
+        src/Section.cpp
         Elements/Section.hpp
         Visualization/glad/glad.h
-        Visualization/glad/glad.c
+        src/glad.c
         Visualization/glad/stb_image_write.h
         Visualization/Shaders.hpp
-        Visualization/CreateOpenGlWindow.cpp
+        src/CreateOpenGlWindow.cpp
         Visualization/CreateOpenGlWindow.hpp
-        Visualization/Shaders.cpp
-        Solver/Solver.cpp
+        src/Shaders.cpp
+        src/Solver.cpp
         Solver/Solver.hpp
-        Visualization/base64.cpp
+        src/base64.cpp
         Visualization/base64.h
+        MES.h
 )
 
 target_link_libraries(MES glfw ${CMAKE_DL_LIBS})

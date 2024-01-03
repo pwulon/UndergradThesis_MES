@@ -1,12 +1,8 @@
 #include <iostream>
-#include <cmath>
-#include <vector>
-#include <fstream>
 
 #include <thread>
-#include <chrono>
 
-#include "Solver/Solver.hpp"
+#include "MES.h"
 
 int main() {
     const int nVerWidth = 271; //vertices number
@@ -16,16 +12,16 @@ int main() {
     const double height = 5.2;
 
     std::cout<<"Constructor"<<std::endl;
-    fem::solve::Solver s1(width, height, nVerWidth, nVerHeight);
-    s1.setImageSize(1600,1600).setBaseFunctionType(fem::LIN);
+    mes::solver::Solver s1(width, height, nVerWidth, nVerHeight);
+    s1.setImageSize(1600,1600).setBaseFunctionType(mes::LIN);
 
 
     std::cout<<"initDampWalls"<<std::endl;
-    Wall w1(1., .33, .2, height, fem::DAMP);
-    Wall w3(1.75, .33, width, .2, fem::DAMP);
-    Wall w4(.5, -1., width, .2, fem::DAMP);
-    Wall w5(-.5, -.5, .3, 1., fem::DAMP);
-    Wall w2(-width*.5, -height*.5, .2, height, fem::DAMP);
+    Wall w1(1., .33, .2, height, mes::DAMP);
+    Wall w3(1.75, .33, width, .2, mes::DAMP);
+    Wall w4(.5, -1., width, .2, mes::DAMP);
+    Wall w5(-.5, -.5, .3, 1., mes::DAMP);
+    Wall w2(-width*.5, -height*.5, .2, height, mes::DAMP);
     w2.rot(45);
     s1.addWall(w1).addWall(w2).addWall(w3).addWall(w4).addWall(w5);
 

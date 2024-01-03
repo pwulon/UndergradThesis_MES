@@ -2,11 +2,11 @@
 // Created by Pawulon on 26/12/2023.
 //
 
-#include "Wall.hpp"
+#include "../Elements/Wall.hpp"
 
 
 
-Wall::Wall(double leftDownX, double leftDownY, double w, double h, fem::elementType elt):
+Wall::Wall(double leftDownX, double leftDownY, double w, double h, mes::elementType elt):
     leftDownCorner{leftDownX, leftDownY},
     leftUpCorner{leftDownX, leftDownY + h},
     rightUpCorner{leftDownX + w, leftDownY + h},

@@ -2,7 +2,7 @@
 // Created by Pawulon on 03/12/2023.
 //
 
-#include "Parabola.hpp"
+#include "../FortunesAlgo/Math/Parabola.hpp"
 
 /**
 

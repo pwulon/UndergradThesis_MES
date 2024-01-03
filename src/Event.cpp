@@ -2,7 +2,7 @@
 // Created by Pawulon on 13/12/2023.
 //
 
-#include "Event.hpp"
+#include "../FortunesAlgo/Datastruct/Event.hpp"
 
 Event::Event(int _index, int _type, const Vertex2D &_point) :
         index(_index), type(_type), point(_point), arc(nullptr) {}

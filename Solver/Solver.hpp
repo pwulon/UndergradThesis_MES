@@ -9,7 +9,7 @@
 #include <cmath>
 #include <vector>
 #include <fstream>
-#include <chrono>
+
 
 #include "../Elements/TriangleElement.hpp"
 #include "../Elements/Section.hpp"
@@ -24,14 +24,14 @@
 #include <eigen3/Eigen/SparseLU>
 
 
-namespace fem {
-    namespace solve{
+namespace mes {
+    namespace solver{
 
     class Solver {
     private:
         int nDampLayers = 4;
         double frequency = 2.4 ;
-        fem::baseFuncType fType = fem::LIN;
+        mes::baseFuncType fType = mes::LIN;
         Vertex2D sourcePoint = Vertex2D(0., 0.);
 
         double widthEleLen ;
@@ -46,8 +46,8 @@ namespace fem {
 
         std::vector<Vertex2D> points;
         std::vector<Wall> walls;
-        std::vector<fem::ElementIndices> elementsIdx;
-        std::vector<fem::TriangleElement> Elements;
+        std::vector<mes::ElementIndices> elementsIdx;
+        std::vector<mes::TriangleElement> Elements;
         int nVertices;
         Eigen::SparseMatrix<std::complex<double>> stiffnessMatrix;
         Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> loadVector;
@@ -68,7 +68,7 @@ namespace fem {
 
         Solver& setNumberOfDampLayers(int i);
         Solver& setFrequency(double f);
-        Solver& setBaseFunctionType( fem::baseFuncType fType);
+        Solver& setBaseFunctionType(mes::baseFuncType fType);
         Solver& setSourcePoint(const Vertex2D &p);
         Solver& setSourcePoint(double x, double y);
         Solver& setImageSize(unsigned int x, unsigned int y);
@@ -78,7 +78,7 @@ namespace fem {
         Solver& generateSimpleMesh();
 
 
-        Solver& addWall(double leftDownX, double leftDownY, double w, double h, fem::elementType elt);
+        Solver& addWall(double leftDownX, double leftDownY, double w, double h, mes::elementType elt);
         Solver& addWall(Wall &w);
 
         Solver& divideIntoElements();
@@ -89,8 +89,8 @@ namespace fem {
         Solver& buildLoadVector(const Vertex2D &p);
         Solver& buildSolver();
         Solver& solve();
-        std::string draw();
-        Solver& doAll();
+        std::vector<unsigned char> draw();
+
     };
 
 

@@ -2,10 +2,10 @@
 // Created by Pawulon on 13/12/2023.
 //
 
-#include "TriangleElement.hpp"
+#include "../Elements/TriangleElement.hpp"
 
 
-namespace fem {
+namespace mes {
 
     ElementIndices::ElementIndices(std::vector<int> &_indices, elementType _et,  baseFuncType _ft):indices{_indices}, et{_et}, bft{_ft} {};
 
@@ -48,7 +48,7 @@ namespace fem {
                             -(nablaphi_i.first * nablaphi_j.first +
                             nablaphi_i.second * nablaphi_j.second) +
                             pow(k_, 2) * pow(getRefIdx(), 2) *
-                            baseFunc[i](fem::xgaus[k], fem::ygaus[k]) * baseFunc[j](fem::xgaus[k], fem::ygaus[k]));
+                            baseFunc[i](mes::xgaus[k], mes::ygaus[k]) * baseFunc[j](mes::xgaus[k], mes::ygaus[k]));
                 }
             }
         }
@@ -132,7 +132,7 @@ namespace fem {
 
     void TriangleElement::initJacob() {
         for(int k = 0; k<7; k++){
-            jacob_.push_back(Jacobian(fem::xgaus[k],fem::ygaus[k]));
+            jacob_.push_back(Jacobian(mes::xgaus[k], mes::ygaus[k]));
         }
     }
 

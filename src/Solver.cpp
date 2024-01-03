@@ -2,10 +2,10 @@
 // Created by Pawulon on 31/12/2023.
 //
 
-#include "Solver.hpp"
+#include "../Solver/Solver.hpp"
 
 
-namespace fem::solve {
+namespace mes::solver {
 
     bool Solver::isOnEdge(int k) {
         for (int i = 0; i < width + 2 * nDampLayers; i++) {
@@ -34,19 +34,19 @@ namespace fem::solve {
     Solver& Solver::initDampWalls() {
         walls.insert(walls.begin(),   {-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
                                       nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
-                                      fem::DAMP});
+                                       mes::DAMP});
 
         walls.insert(walls.begin(),{-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
                                     width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
-                                    fem::DAMP});
+                                    mes::DAMP});
 
         walls.insert(walls.begin(), {-width / 2 - (nDampLayers * widthEleLen), height / 2.,
                                      width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
-                                     fem::DAMP});
+                                     mes::DAMP});
 
         walls.insert(walls.begin(), {width / 2., -height / 2 - nDampLayers * heightEleLen,
                                      nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
-                                     fem::DAMP});
+                                     mes::DAMP});
         return *this;
     }
 
@@ -60,7 +60,7 @@ namespace fem::solve {
         build(points, elementsIdx, walls, fType);
 
         // quad elements intersection
-        if (fType == fem::QUAD) {
+        if (fType == mes::QUAD) {
             addQuadVertElements(points, elementsIdx);
         }
 
@@ -131,13 +131,13 @@ namespace fem::solve {
         return *this;
     }
 
-    std::string Solver::draw() {
+    std::vector<unsigned char> Solver::draw() {
         auto normalSolution = normalizeSolution(); //placeholder
         auto encodedImg = CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight);
         return encodedImg;
     }
 
-    std::vector<double> fem::solve::Solver::normalizeSolution() {
+    std::vector<double> Solver::normalizeSolution() {
         std::vector<double> out;
 
         double maxElement = 0;
@@ -154,19 +154,6 @@ namespace fem::solve {
         return out;
     }
 
-    Solver& Solver::doAll() {
-        generateSimpleMesh()
-            .initDampWalls()
-            .divideIntoElements()
-            .buildElements()
-            .buildStiffnessMatrix()
-            .buildSolver()
-            .buildLoadVector()
-            .solve()
-            .draw();
-
-        return *this;
-    }
 
     Solver::Solver(double width, double height, int nVerWidth, int nVerHeight) :
                                                                             width(width), height(height),
@@ -177,24 +164,18 @@ namespace fem::solve {
         canvasWidth = 900;
         canvasHeight = static_cast<unsigned int>(canvasWidth * (height/width));
 
-        fem::TriangleElement::k_ = 2. * M_PI * frequency * pow(10,9)/(2.99792458 * pow(10,8));
+        mes::TriangleElement::k_ = 2. * M_PI * frequency * pow(10, 9) / (2.99792458 * pow(10, 8));
     }
 
     Solver& Solver::buildElements() {
         int m = 0;
-        auto start = std::chrono::high_resolution_clock::now();
         for (auto &idx: elementsIdx) {
             Elements.emplace_back(m++, points, idx);
         }
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-        std::cout << "Time taken by function: " << duration.count() << " microseconds" << std::endl;
-        std::cout << "Time taken by function: " << duration.count()/Elements.size() << std::endl;
-
         return *this;
     }
 
-    Solver &Solver::addWall(double leftDownX, double leftDownY, double w, double h, fem::elementType elt) {
+    Solver &Solver::addWall(double leftDownX, double leftDownY, double w, double h, mes::elementType elt) {
         walls.emplace_back(leftDownX, leftDownY, w, h, elt);
         return *this;
     }
@@ -216,11 +197,11 @@ namespace fem::solve {
 
     Solver &Solver::setFrequency(double f) {
         this->frequency = f;
-        fem::TriangleElement::k_ = 2. * M_PI * frequency * pow(10,9)/(2.99792458 * pow(10,8));
+        mes::TriangleElement::k_ = 2. * M_PI * frequency * pow(10, 9) / (2.99792458 * pow(10, 8));
         return *this;
     }
 
-    Solver &Solver::setBaseFunctionType(fem::baseFuncType fType) {
+    Solver &Solver::setBaseFunctionType(mes::baseFuncType fType) {
         this->fType = fType;
         return *this;
     }

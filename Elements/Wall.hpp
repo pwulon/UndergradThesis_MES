@@ -11,14 +11,18 @@
 
 class Wall {
 public:
-    fem::elementType type;
+    mes::elementType type;
     Vertex2D leftDownCorner, leftUpCorner, rightDownCorner, rightUpCorner;
-    Wall(double leftDownX, double leftDownY, double w, double h, fem::elementType elt);
+
+    Wall(double leftDownX, double leftDownY, double w, double h, mes::elementType elt);
+
     void rot(double ang);
+
     bool isInsideWall(double &x, double &y);
+
     bool isInsideWall(Vertex2D &p);
 
-    bool isRightTo(double &x, double &y,double &x_0, double &y_0, double &x_1, double &y_1);
+    bool isRightTo(double &x, double &y, double &x_0, double &y_0, double &x_1, double &y_1);
 };
 
 

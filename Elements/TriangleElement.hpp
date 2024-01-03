@@ -14,7 +14,7 @@
 
 #include "Vertex2D.hpp"
 
-namespace fem{
+namespace mes{
     enum baseFuncType{
         LIN = 1, QUAD = 2
     };
@@ -28,7 +28,7 @@ namespace fem{
         elementType et;
         baseFuncType bft;
         std::vector<int> indices;
-        ElementIndices(std::vector<int> &_indices, elementType _et, baseFuncType _ft = fem::LIN);
+        ElementIndices(std::vector<int> &_indices, elementType _et, baseFuncType _ft = mes::LIN);
     };
 
 
@@ -70,7 +70,7 @@ namespace fem{
             elementType n_;
             static double k_;
             static Vertex2D source_;
-            fem::ElementIndices &globalVectorIdx;
+            mes::ElementIndices &globalVectorIdx;
             std::vector<Vertex2D> *vertices_;
             std::vector<std::vector<std::complex<double>>> E_;
             std::vector<double> F_;

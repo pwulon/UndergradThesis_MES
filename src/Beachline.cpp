@@ -2,7 +2,7 @@
 // Created by Pawulon on 03/12/2023.
 //
 
-#include "Beachline.hpp"
+#include "../FortunesAlgo/Datastruct/Beachline.hpp"
 
 
 namespace beachline {

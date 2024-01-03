@@ -2,7 +2,7 @@
 // Created by Pawulon on 30/12/2023.
 //
 
-#include "Shaders.hpp"
+#include "../Visualization/Shaders.hpp"
 
 unsigned int createShaderProgram(){
 

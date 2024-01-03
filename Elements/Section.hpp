@@ -16,7 +16,9 @@ struct Section;
 
 struct SecComp;
 
-struct SecHash ;
-void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<fem::ElementIndices> &elementsIdx);
+struct SecHash;
+
+void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<mes::ElementIndices> &elementsIdx);
+
 
 #endif //MES_SECTION_HPP

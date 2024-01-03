@@ -2,7 +2,7 @@
 // Created by Pawulon on 03/12/2023.
 //
 
-#include "Vertex2D.hpp"
+#include "../Elements/Vertex2D.hpp"
 
 
 #if defined(_WIN64) || defined(_WIN32)

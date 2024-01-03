@@ -2,22 +2,22 @@
 // Created by Pawulon on 30/12/2023.
 //
 
-#include "CreateOpenGlWindow.hpp"
+#include "../Visualization/CreateOpenGlWindow.hpp"
 //#ifndef STB_IMAGE_WRITE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "glad/stb_image_write.h"
+#include "../Visualization/glad/stb_image_write.h"
 //#endif
 
-std::string saveScreenshot(std::string  filename, GLFWwindow* window) {
+std::vector<unsigned char> saveScreenshot(std::string  filename, GLFWwindow* window) {
 
     int width, height;
 
     glfwGetWindowSize(window, &width, &height);
     size_t size = 3 * width * height;
-    unsigned char* pixels = new unsigned char[size];
+    std::vector<unsigned char> pixels(size);
 
     // Read the pixel data from the framebuffer
-    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, &pixels[0]);
 
     // Flip the image vertically
     for (int i = 0; i < height / 2; ++i) {
@@ -26,14 +26,14 @@ std::string saveScreenshot(std::string  filename, GLFWwindow* window) {
         }
     }
 
-    auto img64 = base64_encode(pixels, size);
+//    auto img64 = base64_encode(pixels, size);
 
     // Save the image using stb_image_write
     const char* charPointer = filename.c_str();
-    stbi_write_jpg(charPointer, width, height, 3, pixels, 100);
+    stbi_write_jpg(charPointer, width, height, 3, &pixels[0], 100);
 
-    delete[] pixels;
-    return img64;
+//    delete[] pixels;
+    return pixels;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -66,8 +66,8 @@ std::string generateFilename(int width, int height) {
     return filename;
 }
 
-std::string  CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem::TriangleElement> &Elements, std::vector<double> &c, double &w, double &h,
-                       int resolutionW, int resolutionH){
+std::vector<unsigned char> CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<mes::TriangleElement> &Elements, std::vector<double> &c, double &w, double &h,
+                                int resolutionW, int resolutionH){
     glfwInit();
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -81,14 +81,14 @@ std::string  CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
-        return "";
+//        return NULL;
     }
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
-        return "";
+//        return "";
     }
 
 
@@ -111,12 +111,12 @@ std::string  CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem
 
     for(auto&e:Elements){
         switch (e.globalVectorIdx.bft) {
-            case fem::LIN:
+            case mes::LIN:
                 for(auto &i:e.globalVectorIdx.indices){
                     indecesBuffer.insert(indecesBuffer.end(), {static_cast<GLuint>(i)});
                 }
                 break;
-            case fem::QUAD:
+            case mes::QUAD:
                 for(int i=0;i<6;i+=2){
                     for(int j=0; j<3;j++){
                         indecesBuffer.insert(indecesBuffer.end(), {static_cast<GLuint>(e.globalVectorIdx.indices[(i+j)%6])});
@@ -167,7 +167,6 @@ std::string  CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<fem
 //    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 //    while(!glfwWindowShouldClose(window))
-    {
 //        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 //            glfwSetWindowShouldClose(window, true);
 

@@ -2,7 +2,7 @@
 // Created by Pawulon on 28/12/2023.
 //
 
-#include "Section.hpp"
+#include "../Elements/Section.hpp"
 
 
 struct Section{
@@ -35,7 +35,7 @@ struct SecHash {
         return h1 ^ h2;
     }
 };
-void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<fem::ElementIndices> &elementsIdx){
+void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<mes::ElementIndices> &elementsIdx){
 //TODO bug dla isBorder, nie wiem jak zdecydowac czy nowy punkt jest na brzegu dla warunkow brzegowych direchleta;
 
     std::unordered_set<Section, SecHash, SecComp> sectionSet;
