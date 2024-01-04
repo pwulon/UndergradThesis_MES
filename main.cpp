@@ -3,7 +3,6 @@
 #include <thread>
 
 #include "MES.h"
-#include "eigen3/Eigen/Core"
 
 int main() {
 
@@ -18,7 +17,6 @@ int main() {
     s1.setImageSize(1600,1600).setBaseFunctionType(mes::LIN).setFrequency(2.4);
 
 
-    std::cout<<"initDampWalls"<<std::endl;
     mes::Wall w1 = mes::Wall::createFromDimensions(1., .33, .2, height, mes::DAMP);
     mes::Wall w2 = mes::Wall::createFromDimensions(-width*.5, -height*.5, .2, height, mes::DAMP).rotSelf(45);
     mes::Wall w3 = mes::Wall::createFromDimensions(1.75, .33, width, .2, mes::DAMP);

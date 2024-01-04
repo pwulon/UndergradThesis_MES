@@ -7,46 +7,58 @@
 
 namespace mes::solver {
 
-    bool Solver::isOnEdge(int k) {
-        for (int i = 0; i < width + 2 * nDampLayers; i++) {
-            if (i == 0 || i == width + 2 * nDampLayers - 1) {
-                for (int j = 0; j < height + 2 * nDampLayers; j++)
-                    if (k == j * width + 2 * nDampLayers + i) return true;
+//    bool Solver::isOnEdge(int k) {
+//        for (int i = 0; i <( width + 2 * nDampLayers); i++) {
+//            if (i == 0 || i == (width + 2 * nDampLayers - 1)) {
+//                for (int j = 0; j < height + 2 * nDampLayers; j++)
+//                    if (k == j * width + 2 * nDampLayers + i) return true;
+//
+//            } else {
+//                if (k == i || k == width * (height - 1) + i) return true;
+//            }
+//        }
+//        return false;
+//    }
 
-            } else {
-                if (k == i || k == width * (height - 1) + i) return true;
-            }
-        }
-        return false;
+    bool Solver::isOnEdge(int &i, int &j) {
+        return i == 0 || j == 0 || i == (nVerWidth + 2 * nDampLayers - 1)|| j == (nVerHeight + 2 * nDampLayers - 1);
     }
 
    Solver& Solver::generateSimpleMesh() {
-        for (int k = 0; k < (nVerWidth + 2 * nDampLayers) * (nVerHeight + 2 * nDampLayers); k++) {
-            int i = k % (nVerWidth + 2 * nDampLayers);
-            int j = k / (nVerWidth + 2 * nDampLayers);
-
-            points.emplace_back(-width / 2 - (nDampLayers * widthEleLen) + (widthEleLen * i),
-                                -height / 2 - (nDampLayers * heightEleLen) + (heightEleLen * j), isOnEdge(k));
+        for(int i = 0; i <  nVerWidth + 2 * nDampLayers; i++){
+            for(int j = 0; j < nVerHeight + 2 * nDampLayers ; j++){
+                points.emplace_back(-width * .5 - (nDampLayers * widthEleLen) + (widthEleLen * i),
+                                    -height * .5 - (nDampLayers * heightEleLen) + (heightEleLen * j), isOnEdge(i,j));
+            }
         }
+//        for (int k = 0; k < (nVerWidth + 2 * nDampLayers) * (nVerHeight + 2 * nDampLayers); k++) {
+//            int i = k % (nVerWidth + 2 * nDampLayers);
+//            int j = k / (nVerWidth + 2 * nDampLayers);
+//
+//            points.emplace_back(-width / 2 - (nDampLayers * widthEleLen) + (widthEleLen * i),
+//                                -height / 2 - (nDampLayers * heightEleLen) + (heightEleLen * j), isOnEdge(k));
+//        }
         return initDampWalls();
     }
 
     Solver& Solver::initDampWalls() {
-        walls.insert(walls.begin(),   Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
-                                      nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
-                                       mes::DAMP));
+        if(nDampLayers>0){
+            walls.insert(walls.begin(),   Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
+                                          nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
+                                           mes::DAMP));
 
-        walls.insert(walls.begin(), Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
-                                    width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
-                                    mes::DAMP));
+            walls.insert(walls.begin(), Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
+                                        width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
+                                        mes::DAMP));
 
-        walls.insert(walls.begin(), Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), height / 2.,
-                                     width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
-                                     mes::DAMP));
+            walls.insert(walls.begin(), Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), height / 2.,
+                                         width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
+                                         mes::DAMP));
 
-        walls.insert(walls.begin(), Wall::createFromDimensions(width / 2., -height / 2 - nDampLayers * heightEleLen,
-                                     nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
-                                     mes::DAMP));
+            walls.insert(walls.begin(), Wall::createFromDimensions(width / 2., -height / 2 - nDampLayers * heightEleLen,
+                                         nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
+                                         mes::DAMP));
+        }
         return *this;
     }
 
@@ -60,11 +72,16 @@ namespace mes::solver {
         fortunes::build(points, elementsIdx, walls, fType);
 
         // quad elements intersection
-        if (fType == mes::QUAD) {
-            addQuadVertElements(points, elementsIdx);
-        }
 
         nVertices = points.size();
+
+        if (fType == mes::QUAD) {
+            addQuadVertElements(points, elementsIdx);
+            nVerticesQuad = static_cast<int>(points.size()) - nVertices;
+            nVertices = nVertices + nVerticesQuad;
+        }
+
+
         return *this;
     }
 
@@ -101,11 +118,14 @@ namespace mes::solver {
         loadVector = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1>(nVertices);
         int minIdx = 0;
         double minDist = sqrt(pow(points[minIdx].x - (sourcePoint.x), 2) + pow(points[minIdx].y - (sourcePoint.y), 2));
-        for (int i = 1; i < nVertices; i++) {
-            double temp = sqrt(pow(points[i].x - (sourcePoint.x), 2) + pow(points[i].y - (sourcePoint.y), 2));
-            if (temp < minDist) {
-                minDist = temp;
-                minIdx = i;
+        loadVector[0] = 0;
+        for (int i = 0; i < nVertices - nVerticesQuad; i++) {
+            if(!points[i].isBorder){
+                double temp = sqrt(pow(points[i].x - (sourcePoint.x), 2) + pow(points[i].y - (sourcePoint.y), 2));
+                if (temp < minDist) {
+                    minDist = temp;
+                    minIdx = i;
+                }
             }
             loadVector[i] = 0;
         }

@@ -57,7 +57,7 @@ namespace mes {
         std::vector<Wall> walls;
         std::vector<mes::ElementIndices> elementsIdx;
         std::vector<mes::TriangleElement> Elements;
-        int nVertices;
+        int nVertices, nVerticesQuad = 0;
         Eigen::SparseMatrix<std::complex<double>> stiffnessMatrix;
         Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> loadVector;
         Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> solutions;
@@ -65,7 +65,7 @@ namespace mes {
 
 
         std::vector<double> normalizeSolution();
-        bool isOnEdge(int k);
+        bool isOnEdge(int &i, int &j);
         Solver& generateSimpleMesh();
         Solver& initDampWalls();
         Solver& divideIntoElements();
