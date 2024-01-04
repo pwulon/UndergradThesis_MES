@@ -1,37 +1,36 @@
 //
 // Created by Pawulon on 13/12/2023.
 //
-#include "Fortunes.hpp"
+#include "../FortunesAlgo/Fortunes.hpp"
 
 
 #define BREAKPOINTS_EPSILON 1.0e-5
 
 
-double calculateSlope(const Point2D &p1, const Point2D &p2) {
-    // Check if the line is vertical to avoid division by zero
-    if (fabs(p1.x - p2.x) < 1e-6) {
-        return std::numeric_limits<double>::infinity(); // Vertical line
+
+
+void mes::fortunes::pointsRot(std::vector<Vertex2D> &points, double ang){
+    double alfa = ang*M_PI/180.;
+    double sin1 = sin(alfa);
+    double cos1 = cos(alfa);
+
+    for (int i = 0; i < points.size(); i++) {
+        double x = points[i].x*cos1 - points[i].y*sin1;
+        double y = points[i].x*sin1 + points[i].y*cos1;
+        points[i].x = x;
+        points[i].y = y;
     }
-//    std::cout<<"p1: "<<p1.x<<" "<<p1.y<<std::endl;
-//    std::cout<<"p2: "<<p2.x<<" "<<p2.y<<std::endl;
-    return (p2.y - p1.y) / (p2.x - p1.x);
 }
 
-bool arePointsCollinear(const std::vector<int> &idx, const std::vector<Point2D> &points) {
-    // Calculate slopes of two lines formed by pairs of points
-//    std::cout<<idx[0]<<" "<<idx[1]<<" "<<idx[2]<<std::endl;
-    double slope1 = calculateSlope(points[idx[0]], points[idx[1]]);
-    double slope2 = calculateSlope(points[idx[1]], points[idx[2]]);
-//    std::cout<<slope1<<std::endl;
-//    std::cout<<slope2<<std::endl;
-//    std::cout<<fabs(slope1 - slope2)<<std::endl;
+void mes::fortunes::build(std::vector<Vertex2D> &points,
+           std::vector<mes::ElementIndices> &elements,
+           std::vector<Wall> walls, mes::baseFuncType _bft, bool withPointRot) {
 
-    // If the slopes are equal, the points are collinear
-    return fabs(slope1 - slope2) < 0.1;
-}
-
-void build(const std::vector<Point2D> &points,
-                   std::vector<std::vector<int>> &elements) {
+    // rotate points to doge edge case when too many points are in a straight line
+    if(withPointRot) {
+        pointsRot(points, 1);
+        for(auto &w:walls) w.rot(1);
+    }
 
     // create a priority queue
     std::priority_queue<EventPtr, std::vector<EventPtr>, EventPtrComparator> pq;
@@ -124,13 +123,18 @@ void build(const std::vector<Point2D> &points,
                 continue;
             }
 
-            // create a new vertex and insert into doubly-connected edge list
-            Point2D voronoiVertex = e->center;
+            bool inWall = false;
+            for(auto& w: walls){
+                if(w.isInsideWall(e->center)){
+                    inWall = true;
+                    elements.emplace_back(e->vertexIindices, w.type, _bft);
+                    break;
+                }
+            }
+            if(!inWall){
+                elements.emplace_back(e->vertexIindices, mes::AIR, _bft);
+            }
 
-            // store vertex of Voronoi diagram
-//            if (!(vertex->x() > -3.88889 && vertex->x() <  3.88889 &&  vertex->y() > -3.88889 && vertex->y() <  3.88889))
-//                if(!arePointsCollinear(e->ids, points))
-            elements.push_back(e->ids);
 
 
             // remove circle event corresponding to next leaf
@@ -176,5 +180,5 @@ void build(const std::vector<Point2D> &points,
             }
         }
     }
-
+    if(withPointRot)  pointsRot(points, -1);
 }

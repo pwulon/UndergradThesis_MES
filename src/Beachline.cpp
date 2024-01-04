@@ -2,15 +2,15 @@
 // Created by Pawulon on 03/12/2023.
 //
 
-#include "Beachline.hpp"
+#include "../FortunesAlgo/Datastruct/Beachline.hpp"
 
-
+namespace mes::fortunes{
 namespace beachline {
 
 
-    BLNode::BLNode(const std::pair<int,int>& _indices,
-                   double* _sweepline ,
-                   const std::vector<Point2D>* _points,
+    BLNode::BLNode(const std::pair<int, int> &_indices,
+                   double *_sweepline,
+                   const std::vector<Vertex2D> *_points,
                    BLNodePtr _left,
                    BLNodePtr _right,
                    BLNodePtr _parent,
@@ -26,9 +26,9 @@ namespace beachline {
         if (is_leaf()) {
             return (*points)[indices.first].x;
         } else {
-            Point2D p1 = (*points)[indices.first], p2 = (*points)[indices.second];
+            Vertex2D p1 = (*points)[indices.first], p2 = (*points)[indices.second];
 
-            std::vector<Point2D> ips = findIntersectionPoints(p1, p2, *sweepline);
+            std::vector<Vertex2D> ips = findIntersectionPoints(p1, p2, *sweepline);
             if (ips.size() == 2) {
                 if (p1.y < p2.y) {
                     return ips[0].x;
@@ -226,12 +226,14 @@ namespace beachline {
             update_height(parent_node);
             int balance = get_balance(parent_node);
             if (balance > 1) { // left subtree is higher than right subtree by more than 1
-                if (parent_node->left != nullptr && !parent_node->left->is_leaf() && get_balance(parent_node->left) < 0) {
+                if (parent_node->left != nullptr && !parent_node->left->is_leaf() &&
+                    get_balance(parent_node->left) < 0) {
                     parent_node->left = rotate_left(parent_node->left);
                 }
                 parent_node = rotate_right(parent_node);
             } else if (balance < -1) { // right subtree is lower than left subtree by more than 1
-                if (parent_node->right != nullptr && !parent_node->right->is_leaf() && get_balance(parent_node->right) > 0) {
+                if (parent_node->right != nullptr && !parent_node->right->is_leaf() &&
+                    get_balance(parent_node->right) > 0) {
                     parent_node->right = rotate_right(parent_node->right);
                 }
                 parent_node = rotate_left(parent_node);
@@ -265,9 +267,9 @@ namespace beachline {
             return nullptr;
 
         BLNodePtr parent = leaf->parent, grandparent = parent->parent;
-        std::pair<int,int> bp1(leaf->prev->get_id(), leaf->get_id());
-        std::pair<int,int> bp2(leaf->get_id(), leaf->next->get_id());
-        std::pair<int,int> other_bp;
+        std::pair<int, int> bp1(leaf->prev->get_id(), leaf->get_id());
+        std::pair<int, int> bp2(leaf->get_id(), leaf->next->get_id());
+        std::pair<int, int> other_bp;
 
         assert(leaf->next != nullptr);
         assert(leaf->prev != nullptr);
@@ -305,12 +307,14 @@ namespace beachline {
             // calculate balance factor of a node
             int balance = get_balance(grandparent);
             if (balance > 1) { // left subtree is higher than right subtree by more than 1
-                if (grandparent->left != nullptr && !grandparent->left->is_leaf() && get_balance(grandparent->left) < 0) {
+                if (grandparent->left != nullptr && !grandparent->left->is_leaf() &&
+                    get_balance(grandparent->left) < 0) {
                     grandparent->left = rotate_left(grandparent->left);
                 }
                 grandparent = rotate_right(grandparent);
             } else if (balance < -1) { // right subtree is lower than left subtree by more than 1
-                if (grandparent->right != nullptr && !grandparent->right->is_leaf() && get_balance(grandparent->right) > 0) {
+                if (grandparent->right != nullptr && !grandparent->right->is_leaf() &&
+                    get_balance(grandparent->right) > 0) {
                     grandparent->right = rotate_right(grandparent->right);
                 }
                 grandparent = rotate_left(grandparent);
@@ -340,9 +344,9 @@ namespace beachline {
             return std::make_pair<BLNodePtr>(nullptr, nullptr);
 
         BLNodePtr parent = leaf->parent, gparent = leaf->parent;
-        std::pair<int,int> bp1(leaf->prev->get_id(), leaf->get_id()); // left breakpoint
-        std::pair<int,int> bp2(leaf->get_id(), leaf->next->get_id()); // right breakpoint
-        std::pair<int,int> other_bp;
+        std::pair<int, int> bp1(leaf->prev->get_id(), leaf->get_id()); // left breakpoint
+        std::pair<int, int> bp2(leaf->get_id(), leaf->next->get_id()); // right breakpoint
+        std::pair<int, int> other_bp;
 
         bool left_is_missing = true;
 
@@ -382,7 +386,7 @@ namespace beachline {
 
 
     BLNodePtr make_subtree(int index, int index_behind, double *sweepline,
-                           const std::vector<Point2D> *points
+                           const std::vector<Vertex2D> *points
     ) {
 
         // create nodes corresponding to branching points
@@ -421,7 +425,7 @@ namespace beachline {
 
 
     BLNodePtr make_simple_subtree(int index, int index_behind, double *sweepline,
-                                  const std::vector<Point2D> *points
+                                  const std::vector<Vertex2D> *points
     ) {
 
         BLNodePtr node, leaf_l, leaf_r;
@@ -498,10 +502,10 @@ namespace beachline {
         int size = 2;
         for (int i = 1; i < root->height; ++i) {
             layers[i].resize(size);
-            for (int j = 0; j < layers[i-1].size(); ++j) {
-                if (layers[i-1][j] != nullptr) {
-                    layers[i][2*j] = layers[i-1][j]->left;
-                    layers[i][2*j+1] = layers[i-1][j]->right;
+            for (int j = 0; j < layers[i - 1].size(); ++j) {
+                if (layers[i - 1][j] != nullptr) {
+                    layers[i][2 * j] = layers[i - 1][j]->left;
+                    layers[i][2 * j + 1] = layers[i - 1][j]->right;
                 }
             }
             size *= 2;
@@ -511,7 +515,8 @@ namespace beachline {
         for (int i = 0; i < root->height; ++i) {
             for (int j = 0; j < layers[i].size(); ++j) {
                 if (layers[i][j] != nullptr)
-                    std::cout << std::setw(width * size) << "<" << layers[i][j]->indices.first << ", " << layers[i][j]->indices.second << ">";
+                    std::cout << std::setw(width * size) << "<" << layers[i][j]->indices.first << ", "
+                              << layers[i][j]->indices.second << ">";
                 else
                     std::cout << std::setw(width * size) << "      ";
             }
@@ -520,4 +525,5 @@ namespace beachline {
         }
     }
 
+}
 }

@@ -2,13 +2,13 @@
 // Created by Pawulon on 13/12/2023.
 //
 
-#include "Circle.hpp"
+#include "../FortunesAlgo/Math/Circle.hpp"
 
 
-bool findCircleCenter(const Point2D &p1, const Point2D &p2, const Point2D &p3, Point2D &center) {
+bool mes::fortunes::findCircleCenter(const Vertex2D &p1, const Vertex2D &p2, const Vertex2D &p3, Vertex2D &center) {
 
     // get normalized vectors
-    Point2D u1 = (p1 - p2).normalized(), u2 = (p3 - p2).normalized();
+    Vertex2D u1 = (p1 - p2).normalized(), u2 = (p3 - p2).normalized();
 
     double cross = crossProduct(u1, u2);
 
@@ -18,7 +18,7 @@ bool findCircleCenter(const Point2D &p1, const Point2D &p2, const Point2D &p3, P
     }
 
     // get cental points
-    Point2D pc1 = 0.5 * (p1 + p2), pc2 = 0.5 * (p2 + p3);
+    Vertex2D pc1 = 0.5 * (p1 + p2), pc2 = 0.5 * (p2 + p3);
 
     // get free components
     double b1 = dotProduct(u1, pc1), b2 = dotProduct(u2, pc2);
