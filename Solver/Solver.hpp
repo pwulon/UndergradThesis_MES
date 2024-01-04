@@ -4,6 +4,13 @@
 
 #ifndef MES_SOLVER_HPP
 #define MES_SOLVER_HPP
+#define MEASURE_TIME(func) \
+        {auto start_time = std::chrono::high_resolution_clock::now(); \
+        func; \
+        auto end_time = std::chrono::high_resolution_clock::now(); \
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count(); \
+        std::cout << "Time taken by " #func ": " << elapsed_time << " microseconds." << std::endl;}
+
 
 #include <iostream>
 #include <cmath>
@@ -30,9 +37,10 @@ namespace mes {
     class Solver {
     private:
         int nDampLayers = 4;
-        double frequency = 2.4 ;
+        double frequency = 2.4 ; // in GHz
         mes::baseFuncType fType = mes::LIN;
         Vertex2D sourcePoint = Vertex2D(0., 0.);
+        double maxSolutionValue = 0;
 
         double widthEleLen ;
         double heightEleLen ;
@@ -42,6 +50,7 @@ namespace mes {
         double height ;
         int nVerWidth; //vertices number
         int nVerHeight; //vertices number
+
 
 
         std::vector<Vertex2D> points;
@@ -57,40 +66,33 @@ namespace mes {
 
         std::vector<double> normalizeSolution();
         bool isOnEdge(int k);
+        Solver& generateSimpleMesh();
         Solver& initDampWalls();
-
-
+        Solver& divideIntoElements();
+        Solver& buildElements();
+        Solver& buildStiffnessMatrix();
+        Solver& buildLoadVector();
+        Solver& buildSolver();
 
     public:
-
-
         Solver(double width, double height, int nVerWidth, int nVerHeight);
 
         Solver& setNumberOfDampLayers(int i);
         Solver& setFrequency(double f);
         Solver& setBaseFunctionType(mes::baseFuncType fType);
-        Solver& setSourcePoint(const Vertex2D &p);
         Solver& setSourcePoint(double x, double y);
         Solver& setImageSize(unsigned int x, unsigned int y);
 
+        double getMaxValue() const;
 
+        Solver& addWall(Wall w);
 
-        Solver& generateSimpleMesh();
+        Solver& buildStructure(bool compTime = false);
+        Solver& computeSolver(bool compTime = false);
 
-
-        Solver& addWall(double leftDownX, double leftDownY, double w, double h, mes::elementType elt);
-        Solver& addWall(Wall &w);
-
-        Solver& divideIntoElements();
-        Solver& buildElements();
-        Solver& buildStiffnessMatrix();
-        Solver& buildLoadVector();
-        Solver& buildLoadVector(double sx, double sy);
-        Solver& buildLoadVector(const Vertex2D &p);
-        Solver& buildSolver();
         Solver& solve();
-        std::vector<unsigned char> draw();
-
+        Solver& solve(double sx, double sy);
+        Solver& draw();
     };
 
 

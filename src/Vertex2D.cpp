@@ -11,13 +11,12 @@
 
 using namespace std;
 
-
+namespace mes{
 Vertex2D::Vertex2D(double _x, double _y, bool _b) : x(_x), y(_y), isBorder{_b} {
 }
 
 Vertex2D::Vertex2D(const Vertex2D &point) : x(point.x), y(point.y), isBorder{point.isBorder} {
 }
-
 
 
 double dotProduct(const Vertex2D &p1, const Vertex2D &p2) {
@@ -91,7 +90,7 @@ Vertex2D &Vertex2D::operator/=(double value) {
 }
 
 double Vertex2D::operator[](int i) {
-    if (i==0) return x;
+    if (i == 0) return x;
     else return y;
 }
 
@@ -102,4 +101,6 @@ Vertex2D Vertex2D::normalized() {
 
 double Vertex2D::norm() {
     return sqrt(x * x + y * y);
+}
+
 }

@@ -16,7 +16,10 @@
  Otherwise returns true and updates x- and y-coordinates of the `center` of circle.
 
  */
-bool findCircleCenter(const Vertex2D &p1, const Vertex2D &p2, const Vertex2D &p3, Vertex2D &center);
+namespace mes::fortunes{
+    bool findCircleCenter(const Vertex2D &p1, const Vertex2D &p2, const Vertex2D &p3, Vertex2D &center);
+}
+
 
 
 #endif //MES_CIRCLE_HPP

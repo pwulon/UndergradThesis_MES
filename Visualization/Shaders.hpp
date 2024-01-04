@@ -13,8 +13,9 @@
 #include <GLFW/glfw3.h>
 
 
+namespace mes::plot{
+    unsigned int createShaderProgram();
 
-unsigned int createShaderProgram();
-
-std::shared_ptr<GLfloat> makeOrto(double l, double r, double b, double t, double f, double n);
+    std::shared_ptr<GLfloat> makeOrto(double l, double r, double b, double t, double f, double n);
+}
 #endif //MES_SHADERS_HPP

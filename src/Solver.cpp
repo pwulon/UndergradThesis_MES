@@ -32,21 +32,21 @@ namespace mes::solver {
     }
 
     Solver& Solver::initDampWalls() {
-        walls.insert(walls.begin(),   {-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
+        walls.insert(walls.begin(),   Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
                                       nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
-                                       mes::DAMP});
+                                       mes::DAMP));
 
-        walls.insert(walls.begin(),{-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
+        walls.insert(walls.begin(), Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
                                     width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
-                                    mes::DAMP});
+                                    mes::DAMP));
 
-        walls.insert(walls.begin(), {-width / 2 - (nDampLayers * widthEleLen), height / 2.,
+        walls.insert(walls.begin(), Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), height / 2.,
                                      width + 2. * nDampLayers * widthEleLen, nDampLayers * heightEleLen,
-                                     mes::DAMP});
+                                     mes::DAMP));
 
-        walls.insert(walls.begin(), {width / 2., -height / 2 - nDampLayers * heightEleLen,
+        walls.insert(walls.begin(), Wall::createFromDimensions(width / 2., -height / 2 - nDampLayers * heightEleLen,
                                      nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
-                                     mes::DAMP});
+                                     mes::DAMP));
         return *this;
     }
 
@@ -57,7 +57,7 @@ namespace mes::solver {
 
     Solver& Solver::divideIntoElements() {
         // with points rotation implemented inside
-        build(points, elementsIdx, walls, fType);
+        fortunes::build(points, elementsIdx, walls, fType);
 
         // quad elements intersection
         if (fType == mes::QUAD) {
@@ -113,44 +113,44 @@ namespace mes::solver {
         return *this;
     }
 
-    Solver& Solver::buildLoadVector(double sx, double sy) {
-        return setSourcePoint(sx,sy).buildLoadVector();
-    }
-
-    Solver &Solver::buildLoadVector(const Vertex2D &p) {
-        return setSourcePoint(p).buildLoadVector();
-    }
-
     Solver& Solver::buildSolver() {
+
         solverLU.compute(stiffnessMatrix);
         return *this;
     }
 
     Solver& Solver::solve() {
+        buildLoadVector();
         solutions = solverLU.solve(loadVector);
+
+        maxSolutionValue = 0.;
+        for (auto &v: solutions) {
+            if (abs(v) > maxSolutionValue) {
+                maxSolutionValue = abs(v);
+            }
+        }
+
         return *this;
     }
 
-    std::vector<unsigned char> Solver::draw() {
+    Solver& Solver::solve(double sx, double sy) {
+        setSourcePoint(sx, sy);
+        return solve();
+    }
+
+    Solver& Solver::draw() {
         auto normalSolution = normalizeSolution(); //placeholder
-        auto encodedImg = CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight);
-        return encodedImg;
+        plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight);
+        return *this;
     }
 
     std::vector<double> Solver::normalizeSolution() {
         std::vector<double> out;
 
-        double maxElement = 0;
         for (auto &v: solutions) {
-            if (abs(v) > maxElement) {
-                maxElement = abs(v);
-            }
-        }
-        for (auto &v: solutions) {
-            out.push_back(abs(v) / maxElement);
+            out.push_back(abs(v) / maxSolutionValue);
         }
 
-        std::cout << "abs result range: [" << 0 << ", " << maxElement << "]\n";
         return out;
     }
 
@@ -175,12 +175,7 @@ namespace mes::solver {
         return *this;
     }
 
-    Solver &Solver::addWall(double leftDownX, double leftDownY, double w, double h, mes::elementType elt) {
-        walls.emplace_back(leftDownX, leftDownY, w, h, elt);
-        return *this;
-    }
-
-    Solver &Solver::addWall(Wall &w) {
+    Solver &Solver::addWall(Wall w) {
         walls.push_back(w);
         return *this;;
     }
@@ -190,10 +185,6 @@ namespace mes::solver {
         return *this;
     }
 
-    Solver &Solver::setSourcePoint(const Vertex2D &p) {
-        this->sourcePoint = Vertex2D(p);
-        return *this;
-    }
 
     Solver &Solver::setFrequency(double f) {
         this->frequency = f;
@@ -210,6 +201,29 @@ namespace mes::solver {
         canvasWidth = x;
         canvasHeight = y;
         return *this;
+    }
+
+    Solver &Solver::buildStructure(bool compTime) {
+        if(compTime) {
+            MEASURE_TIME(generateSimpleMesh());
+            MEASURE_TIME(divideIntoElements());
+            MEASURE_TIME(buildElements());
+            return *this;
+        }
+        return generateSimpleMesh().divideIntoElements().buildElements();
+    }
+
+    Solver &Solver::computeSolver(bool compTime) {
+        if(compTime) {
+            MEASURE_TIME(buildStiffnessMatrix());
+            MEASURE_TIME(buildSolver());
+            return *this;
+        }
+        return buildStiffnessMatrix().buildSolver();
+    }
+
+    double Solver::getMaxValue() const {
+        return maxSolutionValue;
     }
 
 

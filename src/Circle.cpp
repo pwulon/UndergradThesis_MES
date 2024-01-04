@@ -5,7 +5,7 @@
 #include "../FortunesAlgo/Math/Circle.hpp"
 
 
-bool findCircleCenter(const Vertex2D &p1, const Vertex2D &p2, const Vertex2D &p3, Vertex2D &center) {
+bool mes::fortunes::findCircleCenter(const Vertex2D &p1, const Vertex2D &p2, const Vertex2D &p3, Vertex2D &center) {
 
     // get normalized vectors
     Vertex2D u1 = (p1 - p2).normalized(), u2 = (p3 - p2).normalized();

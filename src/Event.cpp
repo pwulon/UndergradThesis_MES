@@ -4,6 +4,7 @@
 
 #include "../FortunesAlgo/Datastruct/Event.hpp"
 
+namespace mes::fortunes{
 Event::Event(int _index, int _type, const Vertex2D &_point) :
         index(_index), type(_type), point(_point), arc(nullptr) {}
 
@@ -43,4 +44,6 @@ EventPtr checkCircleEvent(bl::BLNodePtr n1, bl::BLNodePtr n2, bl::BLNodePtr n3,
     }
 
     return nullptr;
+}
+
 }

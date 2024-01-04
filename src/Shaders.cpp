@@ -4,9 +4,10 @@
 
 #include "../Visualization/Shaders.hpp"
 
-unsigned int createShaderProgram(){
+namespace mes::plot{
+unsigned int createShaderProgram() {
 
-    const char* vertexShaderSource = R"(
+    const char *vertexShaderSource = R"(
         #version 330 core
         in  vec3 position;
 
@@ -21,7 +22,7 @@ unsigned int createShaderProgram(){
     )";
 
     // Fragment Shader Source Code
-    const char* fragmentShaderSource = R"(
+    const char *fragmentShaderSource = R"(
         #version 330 core
 
         in float zPosition;
@@ -88,15 +89,23 @@ unsigned int createShaderProgram(){
     return shaderProgram;
 }
 
-std::shared_ptr<GLfloat> makeOrto(double l, double r, double b, double t, double f, double n){
-    auto* otrh_mtx = new GLfloat[16]{
-            static_cast<GLfloat>(2./(r-l)),            static_cast<GLfloat>(0),                static_cast<GLfloat>(0),                static_cast<GLfloat>(0),
-            static_cast<GLfloat>(0),                   static_cast<GLfloat>(2./(t-b)),         static_cast<GLfloat>(0),                static_cast<GLfloat>(0),
-            static_cast<GLfloat>(0),                   static_cast<GLfloat>(0),                static_cast<GLfloat>(-2./(f-n)),        static_cast<GLfloat>(0),
-            static_cast<GLfloat>(-(r+l)/(r-l)),        static_cast<GLfloat>(-(t+b)/(t-b)),     static_cast<GLfloat>(-(f+n)/(f-n)),     static_cast<GLfloat>(1)
+std::shared_ptr<GLfloat> makeOrto(double l, double r, double b, double t, double f, double n) {
+    auto *otrh_mtx = new GLfloat[16]{
+            static_cast<GLfloat>(2. / (r - l)), static_cast<GLfloat>(0), static_cast<GLfloat>(0),
+            static_cast<GLfloat>(0),
+            static_cast<GLfloat>(0), static_cast<GLfloat>(2. / (t - b)), static_cast<GLfloat>(0),
+            static_cast<GLfloat>(0),
+            static_cast<GLfloat>(0), static_cast<GLfloat>(0), static_cast<GLfloat>(-2. / (f - n)),
+            static_cast<GLfloat>(0),
+            static_cast<GLfloat>(-(r + l) / (r - l)), static_cast<GLfloat>(-(t + b) / (t - b)),
+            static_cast<GLfloat>(-(f + n) / (f - n)), static_cast<GLfloat>(1)
     };
 
-    return {otrh_mtx, [](const GLfloat* arr) {
-        delete[] arr; // Custom deleter for the array
-    }};
+    return {otrh_mtx,
+            [](const GLfloat *arr) {
+                delete[] arr; // Custom deleter for the array
+            }
+    };
+}
+
 }

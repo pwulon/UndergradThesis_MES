@@ -12,57 +12,59 @@
 
 #define POINT_EPSILON 1.0e-6
 
-class Vertex2D {
+namespace mes {
 
-public:
-    double x, y;
-    bool isBorder;
+    class Vertex2D {
 
-    Vertex2D(double x = 0.0, double y = 0.0, bool _b = false);
+    public:
+        double x, y;
+        bool isBorder;
 
-    Vertex2D(const Vertex2D &point);
+        Vertex2D(double x = 0.0, double y = 0.0, bool _b = false);
 
-    friend double dotProduct(const Vertex2D &p1, const Vertex2D &p2);
+        Vertex2D(const Vertex2D &point);
 
-    friend double crossProduct(const Vertex2D &p1, const Vertex2D &p2);
+        friend double dotProduct(const Vertex2D &p1, const Vertex2D &p2);
 
-    friend Vertex2D operator+(const Vertex2D &p1, const Vertex2D &p2);
+        friend double crossProduct(const Vertex2D &p1, const Vertex2D &p2);
 
-    friend Vertex2D operator-(const Vertex2D &p1, const Vertex2D &p2);
+        friend Vertex2D operator+(const Vertex2D &p1, const Vertex2D &p2);
 
-    friend Vertex2D operator/(const Vertex2D &p1, const Vertex2D &p2);
+        friend Vertex2D operator-(const Vertex2D &p1, const Vertex2D &p2);
 
-    friend Vertex2D operator*(const Vertex2D &p, double value);
+        friend Vertex2D operator/(const Vertex2D &p1, const Vertex2D &p2);
 
-    friend Vertex2D operator*(double value, const Vertex2D &p);
+        friend Vertex2D operator*(const Vertex2D &p, double value);
 
-    friend Vertex2D operator/(const Vertex2D &p, double value);
+        friend Vertex2D operator*(double value, const Vertex2D &p);
 
-    friend Vertex2D operator-(const Vertex2D &p);
+        friend Vertex2D operator/(const Vertex2D &p, double value);
 
-    friend std::ostream &operator<<(std::ostream &stream, const Vertex2D &p);
+        friend Vertex2D operator-(const Vertex2D &p);
 
-    friend std::vector<Vertex2D> &operator<<(std::vector<Vertex2D> &v, const Vertex2D &p);
+        friend std::ostream &operator<<(std::ostream &stream, const Vertex2D &p);
 
-    Vertex2D &operator-=(const Vertex2D &p);
+        friend std::vector<Vertex2D> &operator<<(std::vector<Vertex2D> &v, const Vertex2D &p);
 
-    Vertex2D &operator+=(const Vertex2D &p);
+        Vertex2D &operator-=(const Vertex2D &p);
 
-    Vertex2D &operator*=(double value);
+        Vertex2D &operator+=(const Vertex2D &p);
 
-    Vertex2D &operator/=(double value);
+        Vertex2D &operator*=(double value);
 
-    Vertex2D normalized();
+        Vertex2D &operator/=(double value);
 
-    double norm();
+        Vertex2D normalized();
 
-    double operator[](int i);
+        double norm();
 
-};
+        double operator[](int i);
 
-double dotProduct(const Vertex2D &p1, const Vertex2D &p2);
+    };
 
-double crossProduct(const Vertex2D &p1, const Vertex2D &p2);
+    double dotProduct(const Vertex2D &p1, const Vertex2D &p2);
 
+    double crossProduct(const Vertex2D &p1, const Vertex2D &p2);
+}
 
 #endif //MES_VERTEX2D_HPP

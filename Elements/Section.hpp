@@ -12,13 +12,14 @@
 #include "Vertex2D.hpp"
 #include "TriangleElement.hpp"
 
-struct Section;
+namespace mes{
+    struct Section;
 
-struct SecComp;
+    struct SecComp;
 
-struct SecHash;
+    struct SecHash;
 
-void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<mes::ElementIndices> &elementsIdx);
+    void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<mes::ElementIndices> &elementsIdx);
 
-
+}
 #endif //MES_SECTION_HPP

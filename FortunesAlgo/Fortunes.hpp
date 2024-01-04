@@ -13,16 +13,15 @@
 #include "Math/Parabola.hpp"
 #include "Math/Circle.hpp"
 
+namespace mes{
+    namespace fortunes{
+        void pointsRot(std::vector<Vertex2D> &points, double ang);
 
+        void build(std::vector<Vertex2D> &points,
+                   std::vector<mes::ElementIndices> &elements,
+                   std::vector<Wall> walls, mes::baseFuncType _bft = mes::LIN, bool withPointRot = true);
 
-bool arePointsCollinear(const std::vector<int> &idx,const std::vector<Vertex2D> &points);
-
-double calculateSlope(const Vertex2D &p1, const Vertex2D &p2);
-
-void pointsRot(std::vector<Vertex2D> &points, double ang);
-
-void build(std::vector<Vertex2D> &points,
-           std::vector<mes::ElementIndices> &elements,
-           std::vector<Wall> walls, mes::baseFuncType _bft = mes::LIN, bool withPointRot = true);
+    }
+}
 
 #endif //MES_FORTUNES_HPP

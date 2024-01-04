@@ -17,6 +17,7 @@
 
 #include "../Math/Parabola.hpp"
 
+namespace mes::fortunes{
 class Event;
 
 
@@ -24,6 +25,7 @@ namespace beachline {
 
 
     class BLNode;
+
     typedef std::shared_ptr<BLNode> BLNodePtr;
 
     class BLNode {
@@ -48,9 +50,9 @@ namespace beachline {
         std::shared_ptr<Event> circle_event;
 
         // Constructor
-        BLNode(const std::pair<int,int>& _indices,
-               double* _sweepline = nullptr,
-               const std::vector<Vertex2D>* _points = nullptr,
+        BLNode(const std::pair<int, int> &_indices,
+               double *_sweepline = nullptr,
+               const std::vector<Vertex2D> *_points = nullptr,
                BLNodePtr _left = nullptr,
                BLNodePtr _right = nullptr,
                BLNodePtr _parent = nullptr,
@@ -75,7 +77,7 @@ namespace beachline {
         }
 
         // Check if indices are equal
-        inline bool has_indices(const std::pair<int,int> &p) {
+        inline bool has_indices(const std::pair<int, int> &p) {
             return indices.first == p.first && indices.second == p.second;
         }
 
@@ -180,5 +182,5 @@ namespace beachline {
     void print_tree(BLNodePtr root, int width = 7);
 
 }
-
+}
 #endif //MES_BEACHLINE_HPP

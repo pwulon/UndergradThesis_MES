@@ -14,19 +14,24 @@
 #include <iostream>
 #include <ctime>
 #include <sstream>
+#include <filesystem>
 
 
 
+namespace mes{
+    namespace plot{
+        void saveScreenshot(std::string  filename, GLFWwindow* window);
 
-void saveScreenshot(const char* filename, GLFWwindow* window);
+        std::string generateFilename(int width, int height);
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+        int CreateOpenGlWindow(std::vector<Vertex2D> &vertices,
+                               std::vector<mes::TriangleElement> &Elements,
+                               std::vector<double> &c,
+                               double &w, double &h,
+                               int resolutionW, int resolutionH);
+    }
+}
 
-std::vector<unsigned char> CreateOpenGlWindow(std::vector<Vertex2D> &vertices,
-                       std::vector<mes::TriangleElement> &Elements,
-                       std::vector<double> &c,
-                       double &w, double &h,
-                       int resolutionW, int resolutionH);
 
 
 #endif //MES_CREATEOPENGLWINDOW_HPP

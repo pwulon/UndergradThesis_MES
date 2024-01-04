@@ -7,30 +7,9 @@
 #define BREAKPOINTS_EPSILON 1.0e-5
 
 
-double calculateSlope(const Vertex2D &p1, const Vertex2D &p2) {
-    // Check if the line is vertical to avoid division by zero
-    if (fabs(p1.x - p2.x) < 1e-6) {
-        return std::numeric_limits<double>::infinity(); // Vertical line
-    }
-//    std::cout<<"p1: "<<p1.x<<" "<<p1.y<<std::endl;
-//    std::cout<<"p2: "<<p2.x<<" "<<p2.y<<std::endl;
-    return (p2.y - p1.y) / (p2.x - p1.x);
-}
 
-bool arePointsCollinear(const std::vector<int> &idx, const std::vector<Vertex2D> &points) {
-    // Calculate slopes of two lines formed by pairs of points
-//    std::cout<<idx[0]<<" "<<idx[1]<<" "<<idx[2]<<std::endl;
-    double slope1 = calculateSlope(points[idx[0]], points[idx[1]]);
-    double slope2 = calculateSlope(points[idx[1]], points[idx[2]]);
-//    std::cout<<slope1<<std::endl;
-//    std::cout<<slope2<<std::endl;
-//    std::cout<<fabs(slope1 - slope2)<<std::endl;
 
-    // If the slopes are equal, the points are collinear
-    return fabs(slope1 - slope2) < 0.1;
-}
-
-void pointsRot(std::vector<Vertex2D> &points, double ang){
+void mes::fortunes::pointsRot(std::vector<Vertex2D> &points, double ang){
     double alfa = ang*M_PI/180.;
     double sin1 = sin(alfa);
     double cos1 = cos(alfa);
@@ -43,7 +22,7 @@ void pointsRot(std::vector<Vertex2D> &points, double ang){
     }
 }
 
-void build(std::vector<Vertex2D> &points,
+void mes::fortunes::build(std::vector<Vertex2D> &points,
            std::vector<mes::ElementIndices> &elements,
            std::vector<Wall> walls, mes::baseFuncType _bft, bool withPointRot) {
 
