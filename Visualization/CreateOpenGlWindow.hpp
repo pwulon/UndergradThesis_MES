@@ -28,7 +28,8 @@ namespace mes{
                                std::vector<mes::TriangleElement> &Elements,
                                std::vector<double> &c,
                                double &w, double &h,
-                               int resolutionW, int resolutionH, bool log);
+                               int resolutionW, int resolutionH,
+                               mes::baseFuncType _ft,bool log);
     }
 }
 

@@ -10,13 +10,11 @@ int main() {
 
 
 
-    const double width = 5.; // user input
-    const double height = 5.;
+    const double width = 3; // user input
+    const double height = 3;
 
-    mes::solver::Solver s1(width, height, 0.05);
-    s1.setImageSize(1600,1600).setBaseFunctionType(mes::QUAD);
-
-
+    mes::solver::Solver s1(width, height, 0.02);
+    s1.setImageSize(8020,8020).setBaseFunctionType(mes::QUAD);
 
     s1
 //    .addWall(mes::Wall::createFromDimensions(-1.75, -1.75, .25, 3.5, mes::CONCRETE))
@@ -41,7 +39,7 @@ int main() {
             ;
 
     s1.buildStructure(true);
-    s1.computeSolver(true).solve(0.5,0.5).draw();
+    s1.computeSolver(true).solve(0.5,-0.5).draw();
 //    std::this_thread::sleep_for(std::chrono::seconds(1));
 //    s1.drawReal();
 //    std::this_thread::sleep_for(std::chrono::seconds(1));

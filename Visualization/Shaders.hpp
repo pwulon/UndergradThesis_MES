@@ -10,11 +10,13 @@
 #include <memory>
 
 #include "glad/glad.h"
+#include "../Elements/TriangleElement.hpp"
 #include <GLFW/glfw3.h>
 
 
 namespace mes::plot{
     unsigned int createShaderProgram(bool log = true);
+    unsigned int createShaderProgramGeometry(bool log = true);
 
     std::shared_ptr<GLfloat> makeOrto(double l, double r, double b, double t, double f, double n);
 }

@@ -60,7 +60,7 @@ void addQuadVertElements(std::vector<Vertex2D> &ver, std::vector<mes::ElementInd
             }
         }
         //magic rearanging
-        idxs = {idxs[5], idxs[0], idxs[3], idxs[1], idxs[4], idxs[2]};
+//        idxs = {idxs[5], idxs[0], idxs[3], idxs[1], idxs[4], idxs[2]};
     }
 }
 

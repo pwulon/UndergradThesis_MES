@@ -157,19 +157,19 @@ namespace mes::solver {
 
     std::string Solver::draw() {
         auto normalSolution = normalizeSolutionAbs(); //placeholder
-        auto filename = plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight, true);
+        auto filename = plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight, this->fType, true);
         return filename;
     }
 
     Solver& Solver::drawImag() {
         auto normalSolution = normalizeSolutionImg(); //placeholder
-        plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight, false);
+        plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight,this->fType, false);
         return *this;
     }
 
     Solver& Solver::drawReal() {
         auto normalSolution = normalizeSolutionReal(); //placeholder
-        plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight, false);
+        plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight, this->fType, false);
         return *this;
     }
 

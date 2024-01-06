@@ -69,7 +69,7 @@ namespace mes::plot {
 
     std::string CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<mes::TriangleElement> &Elements,
                                       std::vector<double> &c, double &w, double &h,
-                                      int resolutionW, int resolutionH, bool log) {
+                                      int resolutionW, int resolutionH, mes::baseFuncType _ft,bool log) {
         glfwInit();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -93,7 +93,20 @@ namespace mes::plot {
         }
 
 
-        auto shaderProgram = createShaderProgram(log);
+        unsigned int shaderProgram;
+
+        switch (_ft) {
+            case LIN:
+                shaderProgram = createShaderProgram(log);
+                break;
+            case QUAD:
+                shaderProgram = createShaderProgramGeometry(log);
+                break;
+            default:
+                shaderProgram = createShaderProgram(log);
+                break;
+        }
+
 
         // Vertex Data
         std::vector<GLfloat> verticesBuffer;
@@ -107,23 +120,8 @@ namespace mes::plot {
         }
 
         for (auto &e: Elements) {
-            switch (e.globalVectorIdx.bft) {
-                case mes::LIN:
-                    for (auto &i: e.globalVectorIdx.indices) {
-                        indecesBuffer.insert(indecesBuffer.end(), {static_cast<GLuint>(i)});
-                    }
-                    break;
-                case mes::QUAD:
-                    for (int i = 0; i < 6; i += 2) {
-                        for (int j = 0; j < 3; j++) {
-                            indecesBuffer.insert(indecesBuffer.end(),
-                                                 {static_cast<GLuint>(e.globalVectorIdx.indices[(i + j) % 6])});
-                        }
-                    }
-                    for (int i = 0; i < 6; i += 2) {
-                        indecesBuffer.insert(indecesBuffer.end(), {static_cast<GLuint>(e.globalVectorIdx.indices[i])});
-                    }
-                    break;
+            for (auto &i: e.globalVectorIdx.indices) {
+                indecesBuffer.insert(indecesBuffer.end(), {static_cast<GLuint>(i)});
             }
         }
 
@@ -172,7 +170,14 @@ namespace mes::plot {
         glBindVertexArray(VAO);
 
         // Draw the triangle
-        glDrawElements(GL_TRIANGLES, indecesBuffer.size(), GL_UNSIGNED_INT, 0);
+        switch (_ft) {
+            case QUAD:
+                glDrawElements(GL_TRIANGLES_ADJACENCY, indecesBuffer.size(), GL_UNSIGNED_INT, 0);
+                break;
+            default:
+                glDrawElements(GL_TRIANGLES, indecesBuffer.size(), GL_UNSIGNED_INT, 0);
+        }
+
 
         // Unbind the VAO
         glBindVertexArray(0);

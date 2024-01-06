@@ -25,8 +25,8 @@ namespace mes {
                 baseFunc  = {&lin_phi0, &lin_phi1, &lin_phi2};
                 break;
             case QUAD:
-//                baseFunc = {&quad_phi0, &quad_phi1, &quad_phi2, &quad_phi3, &quad_phi4, &quad_phi5};
-                baseFunc = {&quad_phi5, &quad_phi0, &quad_phi3, &quad_phi1, &quad_phi4, &quad_phi2};
+                baseFunc = {&quad_phi0, &quad_phi1, &quad_phi2, &quad_phi3, &quad_phi4, &quad_phi5};
+//                baseFunc = {&quad_phi5, &quad_phi0, &quad_phi3, &quad_phi1, &quad_phi4, &quad_phi2};
                 break;
         }
 
