@@ -14,7 +14,7 @@
 
 
 namespace mes::plot{
-    unsigned int createShaderProgram();
+    unsigned int createShaderProgram(bool log = true);
 
     std::shared_ptr<GLfloat> makeOrto(double l, double r, double b, double t, double f, double n);
 }

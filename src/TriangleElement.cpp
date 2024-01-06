@@ -10,8 +10,6 @@ namespace mes {
     ElementIndices::ElementIndices(std::vector<int> &_indices, elementType _et,  baseFuncType _ft):indices{_indices}, et{_et}, bft{_ft} {};
 
     double TriangleElement::k_ = 1;
-    Vertex2D TriangleElement::source_ (-.5, -.5);
-
 
     std::vector<double> xgaus = {-0.3333333, -0.0597158717, -0.0597158717, -0.8805682564, -0.7974269853, -0.7974269853,
                                  0.5948539707};
@@ -20,7 +18,7 @@ namespace mes {
     std::vector<double> wgaus  = {0.45, 0.2647883055, 0.2647883055, 0.2647883055, 0.251878361, 0.251878361, 0.251878361};
 
 
-    TriangleElement::TriangleElement(int m, std::vector<Vertex2D> &ver, ElementIndices &globIndx ) : m_{m}, vertices_{&ver}, globalVectorIdx{globIndx} {
+    TriangleElement::TriangleElement(std::vector<Vertex2D> &ver, ElementIndices &globIndx ) : vertices_{ver}, globalVectorIdx{globIndx} {
 
         switch (globalVectorIdx.bft) {
             case LIN:
@@ -34,7 +32,6 @@ namespace mes {
 
         initJacob();
         initE();
-//        initF();
     }
 
     void TriangleElement::initE() {
@@ -47,33 +44,12 @@ namespace mes {
                     E_[i][j] += wgaus[k] * jacob_[k] * (
                             -(nablaphi_i.first * nablaphi_j.first +
                             nablaphi_i.second * nablaphi_j.second) +
-                            pow(k_, 2) * pow(getRefIdx(), 2) *
+//                            pow(k_, 2) * pow(getRefIdx(globalVector(i).et), 2) *
+                            pow(k_, 2) * pow(getRefIdx(globalVectorIdx.et), 2) *
                             baseFunc[i](mes::xgaus[k], mes::ygaus[k]) * baseFunc[j](mes::xgaus[k], mes::ygaus[k]));
                 }
             }
         }
-    }
-
-    void TriangleElement::initF() {
-        F_ = std::vector<double>(baseFunc.size());
-        for (int j = 0; j < baseFunc.size(); j++) {
-            if(!globalVector(j).isBorder){
-                if(fabs(globalVector(j).x - source_.x) < .1 && fabs(globalVector(j).y - source_.y) < .1){
-                    F_[j] = 1;
-                }
-
-//                for (int k = 0; k < 7; k++) {
-//                    F_[j] += wgaus[k] * jacob_[k] *
-//                             baseFunc[j](xgaus[k], ygaus[k]) *
-//                             rho(map_x(xgaus[k], ygaus[k]), map_y(xgaus[k], ygaus[k]));
-//                }
-            }else{
-                F_[j] = 0;
-            }
-
-//            if (m_ < 2)std::cout << F_[j] << "\t"; //debug
-        }
-//        if (m_ < 2)std::cout << std::endl << std::endl; //debug
     }
 
     double TriangleElement::Jacobian(double &zeta, double &eta) {
@@ -126,8 +102,8 @@ namespace mes {
         return sum;
     }
 
-    Vertex2D TriangleElement::globalVector(int &i){
-        return (*vertices_)[globalVectorIdx.indices[i]];
+    Vertex2D& TriangleElement::globalVector(int &i){
+        return vertices_[globalVectorIdx.indices[i]];
     }
 
     void TriangleElement::initJacob() {
@@ -136,8 +112,8 @@ namespace mes {
         }
     }
 
-    std::complex<double> TriangleElement::getRefIdx() {
-        switch (globalVectorIdx.et) {
+    std::complex<double> TriangleElement::getRefIdx(elementType &_et) {
+        switch (_et) {
             case AIR:
                 return air;
             case BRICK:
@@ -146,6 +122,8 @@ namespace mes {
                 return concrete;
             case DAMP:
                 return damp;
+            case STEEL:
+                return metal;
             default:
                 return air;
         }
@@ -163,10 +141,6 @@ namespace mes {
         return .5 * (1 + eta);
     }
 
-    double rho(double x, double y){
-        double a = 1./64.;
-        return (1./(fabs(a) * sqrt(M_PI)))*exp(-1.*(pow((x - TriangleElement::source_.x)/a,2)+pow((y  - TriangleElement::source_.y)/a,2)));
-    }
 
     double diffQuotient_x(const std::function<double(double&, double&)> &phi, double &x, double &y) {
         double delta = 1e-4;

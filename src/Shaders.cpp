@@ -5,7 +5,7 @@
 #include "../Visualization/Shaders.hpp"
 
 namespace mes::plot{
-unsigned int createShaderProgram() {
+unsigned int createShaderProgram(bool log) {
 
     const char *vertexShaderSource = R"(
         #version 330 core
@@ -32,15 +32,32 @@ unsigned int createShaderProgram() {
             float t = zPosition;
             vec3 color1 = vec3(0.0, 1.0, 1.0);
             vec3 color2 = vec3(0.0, 0.0, 0.0);
-            vec3 color3 = vec3(1., 1.0, 1.);
+            vec3 color3 = vec3(1., .0, 1.);
 
-//            vec3 color = mix(color2, color3 , log(t + 1)/log(2));
-            vec3 color = mix(color2, color3 , t);
-//            if(t < 0.5){
-//                 color = mix(color1, color2 , t/.5);
-//            }else{
-//                 color = mix(color2, color3 , (t -.5)*2);
-//            }
+
+            vec3 color = vec3(0.0, 0.0, 0.0);
+            if(t < 0.5){
+                 color = mix(color1, color2 , t/.5);
+            }else{
+                 color = mix(color2, color3 , (t -.5)*2);
+            }
+
+            fragColor = vec4(color, 1.0);
+        }
+    )";
+
+    const char *fragmentShaderSourceLogColor = R"(
+        #version 330 core
+
+        in float zPosition;
+        out vec4 fragColor;
+
+        void main() {
+            float t = zPosition;
+            vec3 color2 = vec3(0.0, 0.0, 0.0);
+            vec3 color3 = vec3(1., 1., 1.);
+
+            vec3 color = mix(color2, color3 , log(t*9 + 1)/log(10));
 
             fragColor = vec4(color, 1.0);
         }
@@ -60,7 +77,12 @@ unsigned int createShaderProgram() {
 
     // Fragment Shader
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+    if(log){
+        glShaderSource(fragmentShader, 1, &fragmentShaderSourceLogColor, nullptr);
+    }else{
+        glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+    }
+
     glCompileShader(fragmentShader);
 
     // Check for compile errors

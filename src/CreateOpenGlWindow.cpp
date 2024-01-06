@@ -67,9 +67,9 @@ namespace mes::plot {
         return filename;
     }
 
-    int CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<mes::TriangleElement> &Elements,
+    std::string CreateOpenGlWindow(std::vector<Vertex2D> &vertices, std::vector<mes::TriangleElement> &Elements,
                                       std::vector<double> &c, double &w, double &h,
-                                      int resolutionW, int resolutionH) {
+                                      int resolutionW, int resolutionH, bool log) {
         glfwInit();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -83,17 +83,17 @@ namespace mes::plot {
         if (window == nullptr) {
             std::cout << "Failed to create GLFW window" << std::endl;
             glfwTerminate();
-            return -1;
+//            return -1;
         }
         glfwMakeContextCurrent(window);
 
         if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
             std::cout << "Failed to initialize GLAD" << std::endl;
-            return -1;
+//            return -1;
         }
 
 
-        auto shaderProgram = createShaderProgram();
+        auto shaderProgram = createShaderProgram(log);
 
         // Vertex Data
         std::vector<GLfloat> verticesBuffer;
@@ -124,8 +124,6 @@ namespace mes::plot {
                         indecesBuffer.insert(indecesBuffer.end(), {static_cast<GLuint>(e.globalVectorIdx.indices[i])});
                     }
                     break;
-
-
             }
         }
 
@@ -157,7 +155,7 @@ namespace mes::plot {
 
         glViewport(0, 0, static_cast<GLint>(resolutionW), static_cast<GLint>(resolutionH));
 
-        auto ortMatrix = makeOrto(-w / 2, w / 2, -h / 2, h / 2, -2., 12.);
+        auto ortMatrix = makeOrto(-w / 2 , w / 2 , -h / 2 , h / 2, -2., 12.);
 
         // Rendering commands
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -192,6 +190,6 @@ namespace mes::plot {
         glDeleteProgram(shaderProgram);
 
         glfwTerminate();
-        return 0;
+        return filename;
     }
 }

@@ -7,19 +7,6 @@
 
 namespace mes::solver {
 
-//    bool Solver::isOnEdge(int k) {
-//        for (int i = 0; i <( width + 2 * nDampLayers); i++) {
-//            if (i == 0 || i == (width + 2 * nDampLayers - 1)) {
-//                for (int j = 0; j < height + 2 * nDampLayers; j++)
-//                    if (k == j * width + 2 * nDampLayers + i) return true;
-//
-//            } else {
-//                if (k == i || k == width * (height - 1) + i) return true;
-//            }
-//        }
-//        return false;
-//    }
-
     bool Solver::isOnEdge(int &i, int &j) {
         return i == 0 || j == 0 || i == (nVerWidth + 2 * nDampLayers - 1)|| j == (nVerHeight + 2 * nDampLayers - 1);
     }
@@ -31,19 +18,12 @@ namespace mes::solver {
                                     -height * .5 - (nDampLayers * heightEleLen) + (heightEleLen * j), isOnEdge(i,j));
             }
         }
-//        for (int k = 0; k < (nVerWidth + 2 * nDampLayers) * (nVerHeight + 2 * nDampLayers); k++) {
-//            int i = k % (nVerWidth + 2 * nDampLayers);
-//            int j = k / (nVerWidth + 2 * nDampLayers);
-//
-//            points.emplace_back(-width / 2 - (nDampLayers * widthEleLen) + (widthEleLen * i),
-//                                -height / 2 - (nDampLayers * heightEleLen) + (heightEleLen * j), isOnEdge(k));
-//        }
         return initDampWalls();
     }
 
     Solver& Solver::initDampWalls() {
         if(nDampLayers>0){
-            walls.insert(walls.begin(),   Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
+            walls.insert(walls.begin(),  Wall::createFromDimensions(-width / 2 - (nDampLayers * widthEleLen), -height / 2 - (nDampLayers * heightEleLen),
                                           nDampLayers * widthEleLen, height + 2. * nDampLayers * heightEleLen,
                                            mes::DAMP));
 
@@ -62,26 +42,43 @@ namespace mes::solver {
         return *this;
     }
 
-    Solver& Solver::setNumberOfDampLayers(int i) {
-        this->nDampLayers = i;
+
+    Solver &Solver::setDampLayersDepth(double d) {
+        this->nDampLayers = static_cast<int>(d/dx);
         return *this;
     }
 
     Solver& Solver::divideIntoElements() {
         // with points rotation implemented inside
+
         fortunes::build(points, elementsIdx, walls, fType);
 
         // quad elements intersection
 
-        nVertices = points.size();
+        nVertices = nVerticesLin = static_cast<int>(points.size());
 
         if (fType == mes::QUAD) {
             addQuadVertElements(points, elementsIdx);
-            nVerticesQuad = static_cast<int>(points.size()) - nVertices;
-            nVertices = nVertices + nVerticesQuad;
+            nVerticesLin = nVertices;
+            nVertices = static_cast<int>(points.size());
         }
 
 
+        for(auto &ei:elementsIdx){
+            if(ei.et != mes::AIR){
+                for(auto &i: ei.indices) {
+                    points[i].setElementType(ei.et);
+                }
+            }
+        }
+
+        return *this;
+    }
+
+    Solver& Solver::buildElements() {
+        for (auto &idx: elementsIdx) {
+            Elements.emplace_back(points, idx);
+        }
         return *this;
     }
 
@@ -104,7 +101,7 @@ namespace mes::solver {
 
         for (int i = 0; i < points.size(); i++) {
             if (points[i].isBorder) {
-                tripletListS.emplace_back(i, i, 1.);
+                tripletListS.emplace_back(i, i, 1.f);
             }
         }
 
@@ -118,18 +115,18 @@ namespace mes::solver {
         loadVector = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1>(nVertices);
         int minIdx = 0;
         double minDist = sqrt(pow(points[minIdx].x - (sourcePoint.x), 2) + pow(points[minIdx].y - (sourcePoint.y), 2));
-        loadVector[0] = 0;
-        for (int i = 0; i < nVertices - nVerticesQuad; i++) {
-            if(!points[i].isBorder){
+        loadVector[0] = 0.f;
+        for (int i = 0; i < nVertices; i++) {
+            if(i < nVerticesLin && !points[i].isBorder){
                 double temp = sqrt(pow(points[i].x - (sourcePoint.x), 2) + pow(points[i].y - (sourcePoint.y), 2));
                 if (temp < minDist) {
                     minDist = temp;
                     minIdx = i;
                 }
             }
-            loadVector[i] = 0;
+            loadVector[i] = 0.f;
         }
-        loadVector[minIdx] = 1.;
+        loadVector[minIdx] = 1.f;
         return *this;
     }
 
@@ -158,13 +155,25 @@ namespace mes::solver {
         return solve();
     }
 
-    Solver& Solver::draw() {
-        auto normalSolution = normalizeSolution(); //placeholder
-        plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight);
+    std::string Solver::draw() {
+        auto normalSolution = normalizeSolutionAbs(); //placeholder
+        auto filename = plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight, true);
+        return filename;
+    }
+
+    Solver& Solver::drawImag() {
+        auto normalSolution = normalizeSolutionImg(); //placeholder
+        plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight, false);
         return *this;
     }
 
-    std::vector<double> Solver::normalizeSolution() {
+    Solver& Solver::drawReal() {
+        auto normalSolution = normalizeSolutionReal(); //placeholder
+        plot::CreateOpenGlWindow(points, Elements, normalSolution, width, height, canvasWidth, canvasHeight, false);
+        return *this;
+    }
+
+    std::vector<double> Solver::normalizeSolutionAbs() {
         std::vector<double> out;
 
         for (auto &v: solutions) {
@@ -174,26 +183,71 @@ namespace mes::solver {
         return out;
     }
 
+    std::vector<double> Solver::normalizeSolutionImg() {
+        std::vector<double> out(nVertices);
+
+        double maxSolutionValueReal = 0.;
+        for (auto &v: solutions) {
+            if (v.imag() > maxSolutionValueReal) {
+                maxSolutionValueReal = v.imag();
+            }
+        }
+
+        for (int i=0;i<nVertices;i++) {
+            out[i] = ((solutions[i].imag() +  maxSolutionValueReal) / (2.*maxSolutionValueReal));
+        }
+
+        return out;
+    }
+
+    std::vector<double> Solver::normalizeSolutionReal() {
+        std::vector<double> out;
+
+        double maxSolutionValueReal = 0.;
+        for (auto &v: solutions) {
+            if (v.real() > maxSolutionValueReal) {
+                maxSolutionValueReal = v.real();
+            }
+        }
+
+        for (auto &v: solutions) {
+            out.push_back((v.real() +  maxSolutionValueReal) / (2.*maxSolutionValueReal));
+        }
+
+        return out;
+    }
+
 
     Solver::Solver(double width, double height, int nVerWidth, int nVerHeight) :
-                                                                            width(width), height(height),
-                                                                            nVerWidth(nVerWidth),
-                                                                            nVerHeight(nVerHeight) {
+                                                                    width(width), height(height),
+                                                                    nVerWidth(nVerWidth),
+                                                                   nVerHeight(nVerHeight) {
         widthEleLen = width / (nVerWidth - 1);
         heightEleLen = height / (nVerHeight - 1);
         canvasWidth = 900;
         canvasHeight = static_cast<unsigned int>(canvasWidth * (height/width));
 
+        dx = std::min(widthEleLen, heightEleLen);
+        setDampLayersDepth(.25);
+
         mes::TriangleElement::k_ = 2. * M_PI * frequency * pow(10, 9) / (2.99792458 * pow(10, 8));
     }
 
-    Solver& Solver::buildElements() {
-        int m = 0;
-        for (auto &idx: elementsIdx) {
-            Elements.emplace_back(m++, points, idx);
-        }
-        return *this;
+    Solver::Solver(double width, double height, double _dx) :dx{_dx},
+                                             width(width), height(height)
+    {
+        nVerWidth = static_cast<int>(width/dx) + 1;
+        nVerHeight = static_cast<int>(height/dx) + 1;
+
+        widthEleLen = heightEleLen = dx;
+        canvasWidth = 900;
+        canvasHeight = static_cast<unsigned int>(canvasWidth * (height/width));
+        setDampLayersDepth(.25);
+
+        mes::TriangleElement::k_ = 2. * M_PI * frequency * pow(10, 9) / (2.99792458 * pow(10, 8));
     }
+
+
 
     Solver &Solver::addWall(Wall w) {
         walls.push_back(w);
@@ -245,6 +299,8 @@ namespace mes::solver {
     double Solver::getMaxValue() const {
         return maxSolutionValue;
     }
+
+
 
 
 }

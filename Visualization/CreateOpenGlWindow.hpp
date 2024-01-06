@@ -24,11 +24,11 @@ namespace mes{
 
         std::string generateFilename(int width, int height);
 
-        int CreateOpenGlWindow(std::vector<Vertex2D> &vertices,
+        std::string CreateOpenGlWindow(std::vector<Vertex2D> &vertices,
                                std::vector<mes::TriangleElement> &Elements,
                                std::vector<double> &c,
                                double &w, double &h,
-                               int resolutionW, int resolutionH);
+                               int resolutionW, int resolutionH, bool log);
     }
 }
 

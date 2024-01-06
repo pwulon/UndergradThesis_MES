@@ -36,6 +36,7 @@ namespace mes {
 
     class Solver {
     private:
+        double dx;
         int nDampLayers = 4;
         double frequency = 2.4 ; // in GHz
         mes::baseFuncType fType = mes::LIN;
@@ -57,14 +58,16 @@ namespace mes {
         std::vector<Wall> walls;
         std::vector<mes::ElementIndices> elementsIdx;
         std::vector<mes::TriangleElement> Elements;
-        int nVertices, nVerticesQuad = 0;
+        int nVertices, nVerticesLin = 0;
         Eigen::SparseMatrix<std::complex<double>> stiffnessMatrix;
         Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> loadVector;
         Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> solutions;
         Eigen::SparseLU<Eigen::SparseMatrix<std::complex<double>>>  solverLU;
 
 
-        std::vector<double> normalizeSolution();
+        std::vector<double> normalizeSolutionAbs();
+        std::vector<double> normalizeSolutionReal();
+        std::vector<double> normalizeSolutionImg();
         bool isOnEdge(int &i, int &j);
         Solver& generateSimpleMesh();
         Solver& initDampWalls();
@@ -76,8 +79,9 @@ namespace mes {
 
     public:
         Solver(double width, double height, int nVerWidth, int nVerHeight);
+        Solver(double width, double height, double _dx);
 
-        Solver& setNumberOfDampLayers(int i);
+        Solver& setDampLayersDepth(double d);
         Solver& setFrequency(double f);
         Solver& setBaseFunctionType(mes::baseFuncType fType);
         Solver& setSourcePoint(double x, double y);
@@ -92,7 +96,9 @@ namespace mes {
 
         Solver& solve();
         Solver& solve(double sx, double sy);
-        Solver& draw();
+        std::string draw();
+        Solver& drawImag();
+        Solver& drawReal();
     };
 
 
