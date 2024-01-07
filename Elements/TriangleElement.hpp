@@ -16,7 +16,16 @@
 
 namespace mes{
     enum baseFuncType{
-        LIN = 1, QUAD = 2
+        LIN = 0, QUAD = 1
+    };
+
+    enum elementType{
+        DAMP = -1,
+        AIR = 0,
+        BRICK = 1,
+        CONCRETE = 2,
+        STEEL = 3,
+        GLASS = 4
     };
 
     class ElementIndices{
@@ -43,13 +52,25 @@ namespace mes{
     double diffQuotient_x(const std::function<double(double&, double&)> &phi, double &x, double &y);
     double diffQuotient_y(const std::function<double(double&, double&)> &phi, double &x, double &y);
 
+    static std::complex<double> air;
+    static std::complex<double> brick;
+    static std::complex<double> concrete;
+    static std::complex<double> damp;
+    static std::complex<double> steel;
+    static std::complex<double> glass;
+
+    void setRefIdx(double f);
+
+
     class TriangleElement {
         private:
-            static constexpr std::complex<double> air {1,0};
-            static constexpr std::complex<double> brick {1.97805,-0.0518468};
-            static constexpr std::complex<double> concrete {2.29399,-0.149624};
-            static constexpr std::complex<double> damp {2.29399,-0.149624};
-            static constexpr std::complex<double> metal {6120.32,-6120.32};
+            static int ngaus;
+
+            static std::vector<std::function<double(double&, double&)>> baseFunc;
+            static std::vector<std::vector<double>>  baseFunc_Values;
+            static std::vector<std::vector<double>>  baseFuncDiffQuotient_xValues;
+            static std::vector<std::vector<double>>  baseFuncDiffQuotient_yValues;
+
 
             void initE();
             void initJacob();
@@ -57,9 +78,13 @@ namespace mes{
             double Jacobian(double &zeta, double &eta);
             double map_x(double &zeta, double &eta, int diffFlag = 0);
             double map_y(double &zeta, double &eta, int diffFlag = 0);
+            double map_x(int k, int diffFlag = 0);
+            double map_y(int k, int diffFlag = 0);
             std::pair<double, double> nablaPhik(double &zeta, double &eta, double &jacob, int &k);
+            std::pair<double, double> nablaPhik(int &i, int &k);
 
     public:
+        static std::vector<double> xgaus, ygaus, wgaus;
             Vertex2D& globalVector(int &i);
             static double k_;
 
@@ -67,9 +92,10 @@ namespace mes{
             std::vector<Vertex2D> &vertices_;
             std::vector<std::vector<std::complex<double>>> E_;
             std::vector<double> jacob_;
-            std::vector<std::function<double(double&, double&)>> baseFunc;
+
 
             TriangleElement( std::vector<Vertex2D> &ver, ElementIndices &globIndx);
+            static void staticMembersInit(baseFuncType T);
     };
 }
 

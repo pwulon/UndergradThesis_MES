@@ -15,9 +15,7 @@
 
 namespace mes {
 
-    enum elementType{
-        AIR, BRICK, CONCRETE, DAMP, STEEL
-    };
+
 
 
     class Vertex2D {
@@ -26,13 +24,12 @@ namespace mes {
         double x, y;
         bool isBorder;
 
-        elementType et = AIR;
 
         Vertex2D(double x = 0.0, double y = 0.0, bool _b = false);
 
         Vertex2D(const Vertex2D &point);
 
-        void setElementType(elementType &_et);
+//        void setElementType(elementType &_et);
 
         friend double dotProduct(const Vertex2D &p1, const Vertex2D &p2);
 

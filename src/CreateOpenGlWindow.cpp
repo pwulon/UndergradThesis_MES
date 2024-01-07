@@ -153,7 +153,7 @@ namespace mes::plot {
 
         glViewport(0, 0, static_cast<GLint>(resolutionW), static_cast<GLint>(resolutionH));
 
-        auto ortMatrix = makeOrto(-w / 2 , w / 2 , -h / 2 , h / 2, -2., 12.);
+        auto ortMatrix = makeOrto(-w / 2 -.25 , w / 2 +.25, -h / 2 -.25, h / 2 +.25, -2., 12.);
 
         // Rendering commands
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

@@ -103,8 +103,8 @@ namespace mes{
         return sqrt(x * x + y * y);
     }
 
-    void Vertex2D::setElementType(elementType &_et) {
-        et = _et;
-    }
+//    void Vertex2D::setElementType(elementType &_et) {
+//        et = _et;
+//    }
 
 }

@@ -33,7 +33,6 @@ add_executable(MES main.cpp
         src/Shaders.cpp
         src/Solver.cpp
         Solver/Solver.hpp
-        src/base64.cpp
         Visualization/base64.h
         MES.h
 )

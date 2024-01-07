@@ -22,6 +22,104 @@ unsigned int createShaderProgram(bool log) {
     )";
 
     // Fragment Shader Source Code
+
+    const char *fragmentShaderSourceLogColor = R"(
+        #version 330 core
+
+        float colormap_f1(float x) {
+            return -510.0 * x + 255.0;
+        }
+
+        float colormap_f2(float x) {
+            return (-1891.7 * x + 217.46) * x + 255.0;
+        }
+
+        float colormap_f3(float x) {
+            return 9.26643676359015e1 * sin((x - 4.83450094847127e-1) * 9.93) + 1.35940451627965e2;
+        }
+
+        float colormap_f4(float x) {
+            return -510.0 * x + 510.0;
+        }
+
+        float colormap_f5(float x) {
+            float xx = x - 197169.0 / 251000.0;
+            return (2510.0 * xx - 538.31) * xx;
+        }
+
+        float colormap_red(float x) {
+            if (x < 0.0) {
+                return 1.0;
+            } else if (x < 10873.0 / 94585.0) {
+                float xx = colormap_f2(x);
+                if (xx > 255.0) {
+                    return (510.0 - xx) / 255.0;
+                } else {
+                    return xx / 255.0;
+                }
+            } else if (x < 0.5) {
+                return 1.0;
+            } else if (x < 146169.0 / 251000.0) {
+                return colormap_f4(x) / 255.0;
+            } else if (x < 197169.0 / 251000.0) {
+                return colormap_f5(x) / 255.0;
+            } else {
+                return 0.0;
+            }
+        }
+
+        float colormap_green(float x) {
+            if (x < 10873.0 / 94585.0) {
+                return 1.0;
+            } else if (x < 36373.0 / 94585.0) {
+                return colormap_f2(x) / 255.0;
+            } else if (x < 0.5) {
+                return colormap_f1(x) / 255.0;
+            } else if (x < 197169.0 / 251000.0) {
+                return 0.0;
+            } else if (x <= 1.0) {
+                return abs(colormap_f5(x)) / 255.0;
+            } else {
+                return 0.0;
+            }
+        }
+
+        float colormap_blue(float x) {
+            if (x < 0.0) {
+                return 0.0;
+            } else if (x < 36373.0 / 94585.0) {
+                return colormap_f1(x) / 255.0;
+            } else if (x < 146169.0 / 251000.0) {
+                return colormap_f3(x) / 255.0;
+            } else if (x <= 1.0) {
+                return colormap_f4(x) / 255.0;
+            } else {
+                return 0.0;
+            }
+        }
+
+        vec4 colormap(float x) {
+            return vec4(colormap_red(x), colormap_green(x), colormap_blue(x), 1.0);
+        }
+
+        in float zPosition;
+        out vec4 fragColor;
+
+        void main() {
+
+            float value = zPosition;
+            value = 1. - log(zPosition * 9. + 1.)/log(10) ;
+            //value = log(value*99. + 1.)/log(100.);
+            vec3 color1 = vec3(0.0, 0.0, 0.0);
+            vec3 color2 = vec3(1., 1., 1.);
+
+
+            vec3 color = mix(color1, color2 , value);
+
+            fragColor = colormap(value);
+        }
+    )";
+
     const char *fragmentShaderSource = R"(
         #version 330 core
 
@@ -29,37 +127,17 @@ unsigned int createShaderProgram(bool log) {
         out vec4 fragColor;
 
         void main() {
-            float t = zPosition;
-            vec3 color1 = vec3(0.0, 1.0, 1.0);
-            vec3 color2 = vec3(0.0, 0.0, 0.0);
-            vec3 color3 = vec3(1., .0, 1.);
+            float value = zPosition;
+            vec3 color1 = vec3(0.,0.,0.);
+            vec3 color2 = vec3(1, 0., 1 );
+            vec3 color3 = vec3(0, 1, 1);
 
-
-            vec3 color = vec3(0.0, 0.0, 0.0);
-            if(t < 0.5){
-                 color = mix(color1, color2 , t/.5);
-            }else{
-                 color = mix(color2, color3 , (t -.5)*2);
+            vec3 color = mix(color1, color2 , log(((value -.5)*2.)*9.+ 1.)/log(10.));
+            if(value <.5){
+                 color = mix(color1, color3 , log(((.5 - value)*2.)*9.+ 1.)/log(10.));
             }
 
-            fragColor = vec4(color, 1.0);
-        }
-    )";
-
-    const char *fragmentShaderSourceLogColor = R"(
-        #version 330 core
-
-        in float zPosition;
-        out vec4 fragColor;
-
-        void main() {
-            float t = zPosition;
-            vec3 color2 = vec3(0.0, 0.0, 0.0);
-            vec3 color3 = vec3(1., 1., 1.);
-
-            vec3 color = mix(color2, color3 , log(t*9 + 1)/log(10));
-
-            fragColor = vec4(color, 1.0);
+            gl_FragColor = vec4(color, 1.0);
         }
     )";
 
@@ -135,7 +213,7 @@ unsigned int createShaderProgram(bool log) {
             #version 330 core
 
             layout (triangles_adjacency) in;
-            layout (triangle_strip, max_vertices = 440) out;
+            layout (triangle_strip, max_vertices = 8) out;
 
             uniform mat4 projection;
 
@@ -218,7 +296,7 @@ unsigned int createShaderProgram(bool log) {
                 vec2 tempPos = vec2(-1.f, 1.f);
 
 
-                int n = 20;
+                int n = 2;
                 float step = 2.f/n;
                 for(int i=0; i<n; i++){
                     tempPos = calcU(-1.f + i*step, 1.f - i*step);
@@ -245,20 +323,121 @@ unsigned int createShaderProgram(bool log) {
         const char *fragmentShaderSource = R"(
         #version 330 core
 
+        float colormap_f1(float x) {
+            return -510.0 * x + 255.0;
+        }
+
+        float colormap_f2(float x) {
+            return (-1891.7 * x + 217.46) * x + 255.0;
+        }
+
+        float colormap_f3(float x) {
+            return 9.26643676359015e1 * sin((x - 4.83450094847127e-1) * 9.93) + 1.35940451627965e2;
+        }
+
+        float colormap_f4(float x) {
+            return -510.0 * x + 510.0;
+        }
+
+        float colormap_f5(float x) {
+            float xx = x - 197169.0 / 251000.0;
+            return (2510.0 * xx - 538.31) * xx;
+        }
+
+        float colormap_red(float x) {
+            if (x < 0.0) {
+                return 1.0;
+            } else if (x < 10873.0 / 94585.0) {
+                float xx = colormap_f2(x);
+                if (xx > 255.0) {
+                    return (510.0 - xx) / 255.0;
+                } else {
+                    return xx / 255.0;
+                }
+            } else if (x < 0.5) {
+                return 1.0;
+            } else if (x < 146169.0 / 251000.0) {
+                return colormap_f4(x) / 255.0;
+            } else if (x < 197169.0 / 251000.0) {
+                return colormap_f5(x) / 255.0;
+            } else {
+                return 0.0;
+            }
+        }
+
+        float colormap_green(float x) {
+            if (x < 10873.0 / 94585.0) {
+                return 1.0;
+            } else if (x < 36373.0 / 94585.0) {
+                return colormap_f2(x) / 255.0;
+            } else if (x < 0.5) {
+                return colormap_f1(x) / 255.0;
+            } else if (x < 197169.0 / 251000.0) {
+                return 0.0;
+            } else if (x <= 1.0) {
+                return abs(colormap_f5(x)) / 255.0;
+            } else {
+                return 0.0;
+            }
+        }
+
+        float colormap_blue(float x) {
+            if (x < 0.0) {
+                return 0.0;
+            } else if (x < 36373.0 / 94585.0) {
+                return colormap_f1(x) / 255.0;
+            } else if (x < 146169.0 / 251000.0) {
+                return colormap_f3(x) / 255.0;
+            } else if (x <= 1.0) {
+                return colormap_f4(x) / 255.0;
+            } else {
+                return 0.0;
+            }
+        }
+
+        vec4 colormap(float x) {
+            return vec4(colormap_red(x), colormap_green(x), colormap_blue(x), 1.0);
+        }
+
         in float zPosition;
         out vec4 fragColor;
 
         void main() {
-            float t = zPosition;
-            vec3 color2 = vec3(0.0, 0.0, 0.0);
-            vec3 color3 = vec3(1., 1., 1.);
 
-            vec3 color = mix(color2, color3 , log(t*9 + 1)/log(10));
+            float value = zPosition;
+            value = 1. - log(zPosition * 9. + 1.)/log(10) ;
+            //value = log(value*99. + 1.)/log(100.);
+            vec3 color1 = vec3(0.0, 0.0, 0.0);
+            vec3 color2 = vec3(1., 1., 1.);
 
-            fragColor = vec4(color, 1.0);
+
+            vec3 color = mix(color1, color2 , value);
+
+            fragColor = colormap(value);
         }
     )";
 
+        const char *fragmentShaderSource2 = R"(
+        #version 330 core
+
+        in float zPosition;
+        out vec4 fragColor;
+
+
+        void main() {
+            float value = zPosition;
+            vec3 color1 = vec3(0.,0.,0.);
+            vec3 color2 = vec3(1, 0., 1 );
+            vec3 color3 = vec3(0, 1, 1);
+
+            vec3 color = mix(color1, color2 , log(((value -.5)*2.)*9.+ 1.)/log(10.));
+            if(value <.5){
+                 color = mix(color1, color3 , log(((.5 - value)*2.)*9.+ 1.)/log(10.));
+            }
+
+            gl_FragColor = vec4(color, 1.0);
+        }
+    )";
 
         unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
@@ -274,7 +453,12 @@ unsigned int createShaderProgram(bool log) {
 
         // Fragment Shader
         unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+//        glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+        if(log){
+            glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+        }else{
+            glShaderSource(fragmentShader, 1, &fragmentShaderSource2, nullptr);
+        }
         glCompileShader(fragmentShader);
 
         // Check for compile errors

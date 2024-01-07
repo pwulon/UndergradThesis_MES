@@ -9,7 +9,6 @@
 #include "Shaders.hpp"
 #include "../Elements/TriangleElement.hpp"
 #include "../Elements/Vertex2D.hpp"
-#include "base64.h"
 
 #include <iostream>
 #include <ctime>
