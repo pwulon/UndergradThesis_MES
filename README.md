@@ -4,9 +4,9 @@ This project is an engineering thesis focused on simulating WiFi signal strength
 
 # Preview
 
-![](preview/preview_1.jpg)
-![](preview/preview_2.jpg)
-![](preview/preview_3.jpg)
+![./Preview](./Preview/preview_1.jpg)
+![./Preview](./Preview/preview_2.jpg)
+![./Preview](./Preview/preview_3.jpg)
 
 # Setup
 
